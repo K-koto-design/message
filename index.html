@@ -3,191 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>К-Чат</title>
+    <title>Pro Messenger</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
 
     <style>
         :root {
             --bg: #f2f3f7; --accent: #007aff; --card: #ffffff; --text: #1c1c1e;
-            --secondary: #8e8e93; --user-msg: #007aff; --other-msg: #e5e5ea;
+            --secondary: #8e8e93; --tab-inactive: #a2a2a7;
         }
-        * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
-        body { margin: 0; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; }
+        * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
         
-        /* Экран входа */
-        #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; }
-        .login-card { background: var(--card); padding: 30px; border-radius: 24px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        /* Вход */
+        #auth-screen { display: flex; align-items: center; justify-content: center; height: 100%; padding: 20px; position: fixed; width: 100%; z-index: 1000; background: var(--bg); }
+        .auth-card { background: var(--card); padding: 30px; border-radius: 28px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+
+        /* Основной экран */
+        #main-screen { display: none; flex-direction: column; height: 100vh; }
+        header { background: var(--card); padding: 15px 20px; border-bottom: 1px solid #e5e5ea; display: flex; justify-content: space-between; align-items: center; }
         
-        /* Экран чата */
-        #chat-screen { display: none; flex-direction: column; height: 100vh; }
-        header { background: var(--card); padding: 15px 20px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+        /* Списки */
+        .list-container { flex: 1; overflow-y: auto; padding: 10px; display: block; }
+        .user-item, .group-item { background: var(--card); padding: 15px; border-radius: 18px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; }
+        .user-item:active { transform: scale(0.98); background: #f9f9f9; }
+        .avatar { width: 45px; height: 45px; background: #e5e5ea; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--accent); }
+
+        /* Окно чата */
+        #chat-window { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 500; flex-direction: column; }
+        #chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
         
-        #messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-        
-        /* Стили сообщений */
-        .msg { max-width: 80%; padding: 10px 14px; border-radius: 18px; position: relative; font-size: 15px; line-height: 1.4; }
-        .msg .sender { font-size: 11px; font-weight: 700; margin-bottom: 4px; display: block; opacity: 0.7; }
-        .msg.my { align-self: flex-end; background: var(--user-msg); color: white; border-bottom-right-radius: 4px; }
-        .msg.others { align-self: flex-start; background: var(--other-msg); color: black; border-bottom-left-radius: 4px; }
-        
-        /* Медиа контент */
-        .msg img, .msg video { max-width: 100%; border-radius: 12px; margin-top: 5px; display: block; }
-        
+        .msg { max-width: 75%; padding: 10px 14px; border-radius: 18px; font-size: 15px; position: relative; }
+        .msg.my { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; }
+        .msg.others { align-self: flex-start; background: #e5e5ea; color: black; border-bottom-left-radius: 4px; }
+        .msg .info { font-size: 10px; opacity: 0.7; display: block; margin-bottom: 2px; }
+
+        /* Нижняя панель навигации */
+        .nav-bar { background: var(--card); height: 70px; display: flex; border-top: 1px solid #e5e5ea; padding-bottom: env(safe-area-inset-bottom); }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; color: var(--tab-inactive); }
+        .nav-item.active { color: var(--accent); }
+        .nav-icon { font-size: 22px; margin-bottom: 4px; }
+
         /* Поле ввода */
-        .input-area { background: var(--card); padding: 10px 15px; display: flex; gap: 10px; align-items: center; border-top: 1px solid #ddd; padding-bottom: env(safe-area-inset-bottom); }
-        input[type="text"] { flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid #ddd; outline: none; font-size: 16px; }
-        .btn-send { background: var(--accent); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .btn-attach { background: #e8f0ff; color: var(--accent); border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; }
-        
-        #loading { font-size: 12px; color: var(--accent); display: none; text-align: center; padding: 5px; }
+        .input-area { background: var(--card); padding: 10px; display: flex; gap: 8px; border-top: 1px solid #e5e5ea; }
+        input[type="text"] { flex: 1; padding: 12px 16px; border-radius: 20px; border: 1px solid #ddd; outline: none; }
+        .btn-round { width: 42px; height: 42px; border-radius: 50%; border: none; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; }
     </style>
 </head>
 <body>
 
-    <div id="login-screen">
-        <div class="login-card">
-            <h2>Вход в мессенджер</h2>
-            <input type="text" id="username-input" placeholder="Ваше имя" style="width: 100%; margin-bottom: 15px; padding: 12px; border-radius: 12px; border: 1px solid #ddd;">
-            <button onclick="login()" style="width: 100%; padding: 12px; border-radius: 12px; border: none; background: var(--accent); color: white; font-weight: 600;">Войти</button>
+    <div id="auth-screen">
+        <div class="auth-card">
+            <h2 style="margin-top:0">Messenger</h2>
+            <input type="text" id="login-name" placeholder="Ваш никнейм" style="width:100%; padding:14px; border-radius:12px; border:1px solid #ddd; margin-bottom:15px; outline:none">
+            <button onclick="signIn()" style="width:100%; padding:14px; border-radius:12px; border:none; background:var(--accent); color:white; font-weight:600">Войти</button>
         </div>
     </div>
 
-    <div id="chat-screen">
+    <div id="main-screen">
         <header>
-            <b id="display-name">Чат</b>
-            <button onclick="logout()" style="background:none; border:none; color: var(--red); font-size: 13px;">Выйти</button>
+            <h3 id="view-title">Контакты</h3>
+            <button onclick="createGroupPrompt()" style="background:none; border:none; color:var(--accent); font-weight:600" id="group-add-btn">+ Группа</button>
         </header>
 
-        <div id="messages"></div>
-        <div id="loading">Загрузка файла...</div>
+        <div id="contacts-list" class="list-container"></div>
+        <div id="groups-list" class="list-container" style="display:none"></div>
 
+        <div class="nav-bar">
+            <div class="nav-item active" onclick="switchTab('contacts', this)">
+                <span class="nav-icon">👤</span><span>Люди</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('groups', this)">
+                <span class="nav-icon">👥</span><span>Группы</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-window">
+        <header>
+            <button onclick="closeChat()" style="background:none; border:none; color:var(--accent); font-size:18px">←</button>
+            <b id="chat-title">Чат</b>
+            <div style="width:20px"></div>
+        </header>
+        <div id="chat-messages"></div>
         <div class="input-area">
-            <button class="btn-attach" onclick="document.getElementById('file-input').click()">+</button>
-            <input type="file" id="file-input" hidden accept="image/*,video/*" onchange="uploadFile(this)">
-            <input type="text" id="msg-input" placeholder="Сообщение...">
-            <button class="btn-send" onclick="sendText()">➤</button>
+            <input type="text" id="message-input" placeholder="Сообщение...">
+            <button class="btn-round" onclick="sendMessage()">➤</button>
         </div>
     </div>
 
     <script>
-        // КОНФИГУРАЦИЯ FIREBASE (использую те же ключи, что и в банке)
         const firebaseConfig = {
             apiKey: "AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg",
-            authDomain: "webapp-b7149.firebaseapp.com",
             databaseURL: "https://webapp-b7149-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "webapp-b7149",
-            storageBucket: "webapp-b7149.appspot.com",
-            messagingSenderId: "1034835242406",
-            appId: "1:1034835242406:web:98499dc1edbb83e4b8f367"
         };
-
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.database().ref('global_chat');
-        const storage = firebase.storage().ref('chat_media');
+        const rdb = firebase.database();
 
-        let currentUser = localStorage.getItem('chat_user');
+        let myUser = JSON.parse(localStorage.getItem('pro_chat_user'));
+        let currentChatId = null;
+        let isGroup = false;
 
-        // Логика входа
-        function login() {
-            const name = document.getElementById('username-input').value.trim();
-            if (name) {
-                localStorage.setItem('chat_user', name);
-                location.reload();
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('chat_user');
+        function signIn() {
+            const name = document.getElementById('login-name').value.trim();
+            if(!name) return;
+            const uid = 'u' + Date.now();
+            myUser = { uid, name };
+            rdb.ref('users/' + uid).set(myUser);
+            localStorage.setItem('pro_chat_user', JSON.stringify(myUser));
             location.reload();
         }
 
-        if (currentUser) {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('chat-screen').style.display = 'flex';
-            document.getElementById('display-name').innerText = currentUser;
-            loadMessages();
+        if(myUser) {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-screen').style.display = 'flex';
+            loadContacts();
+            loadGroups();
         }
 
-        // Отправка текста
-        function sendText() {
-            const inp = document.getElementById('msg-input');
-            const text = inp.value.trim();
-            if (!text) return;
+        function switchTab(tab, el) {
+            document.querySelectorAll('.list-container').forEach(c => c.style.display = 'none');
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(tab + '-list').style.display = 'block';
+            el.classList.add('active');
+            document.getElementById('view-title').innerText = tab === 'contacts' ? 'Контакты' : 'Группы';
+            document.getElementById('group-add-btn').style.visibility = tab === 'groups' ? 'visible' : 'hidden';
+        }
 
-            db.push({
-                user: currentUser,
+        function loadContacts() {
+            rdb.ref('users').on('value', snap => {
+                const list = document.getElementById('contacts-list');
+                list.innerHTML = "";
+                snap.forEach(child => {
+                    const u = child.val();
+                    if(u.uid === myUser.uid) return;
+                    list.innerHTML += `
+                        <div class="user-item" onclick="openPrivateChat('${u.uid}', '${u.name}')">
+                            <div class="avatar">${u.name[0]}</div>
+                            <div><b>${u.name}</b><br><small style="color:gray">Написать сообщение</small></div>
+                        </div>`;
+                });
+            });
+        }
+
+        function loadGroups() {
+            rdb.ref('groups').on('value', snap => {
+                const list = document.getElementById('groups-list');
+                list.innerHTML = "";
+                snap.forEach(child => {
+                    const g = child.val();
+                    list.innerHTML += `
+                        <div class="group-item" onclick="openGroupChat('${child.key}', '${g.name}')">
+                            <div class="avatar" style="background:#ff9500; color:white">#</div>
+                            <div><b>${g.name}</b><br><small style="color:gray">Общий чат</small></div>
+                        </div>`;
+                });
+            });
+        }
+
+        function createGroupPrompt() {
+            const name = prompt("Введите название группы:");
+            if(name) rdb.ref('groups').push({ name, creator: myUser.name });
+        }
+
+        function openPrivateChat(targetUid, targetName) {
+            isGroup = false;
+            currentChatId = myUser.uid < targetUid ? myUser.uid + '_' + targetUid : targetUid + '_' + myUser.uid;
+            document.getElementById('chat-title').innerText = targetName;
+            startChatSession();
+        }
+
+        function openGroupChat(groupId, groupName) {
+            isGroup = true;
+            currentChatId = groupId;
+            document.getElementById('chat-title').innerText = groupName;
+            startChatSession();
+        }
+
+        function startChatSession() {
+            document.getElementById('chat-window').style.display = 'flex';
+            const path = isGroup ? 'group_msgs/' : 'private_msgs/';
+            rdb.ref(path + currentChatId).off(); // Отключаем старые подписки
+            rdb.ref(path + currentChatId).on('value', snap => {
+                const box = document.getElementById('chat-messages');
+                box.innerHTML = "";
+                snap.forEach(child => {
+                    const m = child.val();
+                    const isMy = m.senderId === myUser.uid;
+                    box.innerHTML += `
+                        <div class="msg ${isMy ? 'my' : 'others'}">
+                            <span class="info">${m.senderName}</span>
+                            ${m.text}
+                        </div>`;
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
+        function sendMessage() {
+            const inp = document.getElementById('message-input');
+            const text = inp.value.trim();
+            if(!text) return;
+            const path = isGroup ? 'group_msgs/' : 'private_msgs/';
+            rdb.ref(path + currentChatId).push({
+                senderId: myUser.uid,
+                senderName: myUser.name,
                 text: text,
-                type: 'text',
                 time: Date.now()
             });
             inp.value = "";
         }
 
-        // Загрузка фото/видео
-        function uploadFile(input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            const loader = document.getElementById('loading');
-            loader.style.display = 'block';
-
-            const fileName = Date.now() + '_' + file.name;
-            const fileRef = storage.child(fileName);
-
-            fileRef.put(file).then(snapshot => {
-                return snapshot.ref.getDownloadURL();
-            }).then(url => {
-                db.push({
-                    user: currentUser,
-                    url: url,
-                    type: file.type.includes('image') ? 'image' : 'video',
-                    time: Date.now()
-                });
-                loader.style.display = 'none';
-                input.value = "";
-            }).catch(err => {
-                alert("Ошибка загрузки");
-                loader.style.display = 'none';
-            });
+        function closeChat() {
+            document.getElementById('chat-window').style.display = 'none';
         }
 
-        // Отображение сообщений
-        function loadMessages() {
-            db.limitToLast(50).on('value', (snapshot) => {
-                const container = document.getElementById('messages');
-                container.innerHTML = "";
-                const data = snapshot.val();
-                if (!data) return;
-
-                Object.values(data).forEach(m => {
-                    const isMy = m.user === currentUser;
-                    const msgDiv = document.createElement('div');
-                    msgDiv.className = `msg ${isMy ? 'my' : 'others'}`;
-                    
-                    let content = `<span class="sender">${m.user}</span>`;
-                    
-                    if (m.type === 'text') {
-                        content += `<span>${m.text}</span>`;
-                    } else if (m.type === 'image') {
-                        content += `<img src="${m.url}" onclick="window.open('${m.url}')">`;
-                    } else if (m.type === 'video') {
-                        content += `<video src="${m.url}" controls></video>`;
-                    }
-
-                    msgDiv.innerHTML = content;
-                    container.appendChild(msgDiv);
-                });
-                container.scrollTop = container.scrollHeight;
-            });
-        }
-
-        // Отправка по Enter
-        document.getElementById('msg-input').onkeypress = function(e) {
-            if (e.keyCode === 13) sendText();
-        };
+        document.getElementById('message-input').onkeypress = (e) => { if(e.keyCode === 13) sendMessage(); };
     </script>
 </body>
 </html>

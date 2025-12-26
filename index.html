@@ -26,7 +26,6 @@
         * { box-sizing: border-box; font-family: -apple-system, system-ui, sans-serif; }
         body { margin: 0; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* HEADER */
         header {
             padding: 12px 16px;
             background: rgba(28, 28, 30, 0.8);
@@ -40,20 +39,19 @@
         .profile-info { display: flex; align-items: center; gap: 10px; }
         .avatar-main { width: 36px; height: 36px; border-radius: 12px; background: var(--vk-blue); display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
-        /* CHAT FLOW */
-        #chat-flow { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 6px; background: var(--bg); }
-        .msg { max-width: 75%; padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; position: relative; }
+        #chat-flow { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
+        .msg { max-width: 80%; padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; position: relative; animation: slideUp 0.2s ease; }
+        @keyframes slideUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+        
         .msg.my { align-self: flex-end; background: var(--my-msg); border-bottom-right-radius: 4px; }
         .msg.other { align-self: flex-start; background: var(--other-msg); border-bottom-left-radius: 4px; }
         .sender { font-size: 11px; font-weight: 600; margin-bottom: 2px; opacity: 0.7; display: block; }
         .msg img, .msg video { max-width: 100%; border-radius: 12px; margin-top: 5px; display: block; }
 
-        /* INPUT */
-        .input-area { background: var(--card); padding: 10px 15px calc(10px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; }
+        .input-area { background: var(--card); padding: 10px 15px calc(15px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; }
         .input-wrap { flex: 1; background: #2c2c2e; border-radius: 20px; padding: 8px 15px; display: flex; align-items: center; }
         input[type="text"], input[type="password"] { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 16px; }
 
-        /* AUTH SCREEN */
         #auth-screen {
             position: fixed; inset: 0; background: var(--bg); z-index: 1000;
             display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
@@ -62,13 +60,11 @@
         .login-box h1 { font-size: 32px; margin-bottom: 10px; }
         .login-box input {
             width: 100%; padding: 16px; border-radius: 16px; border: none;
-            background: var(--card); color: white; margin-bottom: 12px; font-size: 16px;
-            text-align: center;
+            background: var(--card); color: white; margin-bottom: 12px; font-size: 16px; text-align: center;
         }
         .login-box button {
             width: 100%; padding: 16px; border-radius: 16px; border: none;
-            background: var(--vk-blue); color: white; font-weight: bold; font-size: 16px;
-            margin-top: 10px; cursor: pointer;
+            background: var(--vk-blue); color: white; font-weight: bold; font-size: 16px; cursor: pointer;
         }
 
         #progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--vk-blue); width: 0%; z-index: 2000; transition: 0.3s; }
@@ -83,22 +79,20 @@
         <div class="login-box">
             <div style="font-size: 50px; margin-bottom: 20px;">⚡️</div>
             <h1>КОЛИЧ</h1>
-            <p style="color: var(--text-sec); margin-bottom: 30px;">Введите данные для входа</p>
-            
+            <p style="color: var(--text-sec); margin-bottom: 30px;">Чат сотрудников</p>
             <input type="text" id="user-name" placeholder="Логин">
             <input type="password" id="user-pass" placeholder="Пароль" maxlength="8">
-            
             <button onclick="handleLogin()">Войти в систему</button>
-            <p id="error-msg" style="color: #ff3b30; font-size: 13px; margin-top: 15px; display: none;">Неверный пароль!</p>
+            <p id="error-msg" style="color: #ff3b30; font-size: 13px; margin-top: 15px; display: none;"></p>
         </div>
     </div>
 
     <header>
         <div class="profile-info">
-            <div class="avatar-main" id="my-avatar">Ч</div>
+            <div class="avatar-main" id="my-avatar">?</div>
             <div>
-                <b id="display-name">ЧАТ СОТРУДНИКОВ КОТОБАНК</b><br>
-                <small style="color: var(--text-sec);">онлайн-сессия</small>
+                <b id="display-name">ЧАТ КОТОБАНК</b><br>
+                <small style="color: var(--text-sec);">Online</small>
             </div>
         </div>
         <div class="action-btn" onclick="logout()">
@@ -115,7 +109,7 @@
         </label>
         
         <div class="input-wrap">
-            <input type="text" id="msg-input" placeholder="Введите сообщение...">
+            <input type="text" id="msg-input" placeholder="Сообщение...">
         </div>
 
         <div class="action-btn" onclick="sendMsg()">
@@ -124,6 +118,10 @@
     </div>
 
     <script>
+        // --- КОНФИГУРАЦИЯ ---
+        const TG_TOKEN = "8548215166:AAHhHo_ODrDZl-6Lg5Zi-BpBIpeMzXdOEFE"; // Замените на токен от BotFather
+        const TG_CHAT_ID = "-1003486195563"; // Замените на ID группы (напр. -100...)
+        
         const firebaseConfig = {
             apiKey: "AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg",
             databaseURL: "https://webapp-b7149-default-rtdb.europe-west1.firebasedatabase.app",
@@ -141,31 +139,40 @@
 
         if(user) {
             document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('my-avatar').innerText = user.name[0];
+            document.getElementById('my-avatar').innerText = user.name[0].toUpperCase();
             initChat();
         }
 
+        // --- УВЕДОМЛЕНИЯ В TELEGRAM ---
+        async function notifyTelegram(sender, text, type = 'text') {
+            const content = type === 'text' ? text : `📷 Отправил медиафайл`;
+            const message = `💬 *${sender}* в КОЛИЧ:\n${content}`;
+            
+            try {
+                await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: TG_CHAT_ID,
+                        text: message,
+                        parse_mode: "Markdown"
+                    })
+                });
+            } catch (e) { console.error("TG Notify Error", e); }
+        }
+
+        // --- ЛОГИКА ЧАТА ---
         async function handleLogin() {
             const name = document.getElementById('user-name').value.trim();
             const pass = document.getElementById('user-pass').value.trim();
-            const errorEl = document.getElementById('error-msg');
-            
             if(!name || !pass) return;
 
-            // Проверяем, есть ли пользователь в базе
             usersDb.child(name).once('value', snapshot => {
                 const userData = snapshot.val();
-                
                 if (userData) {
-                    // Пользователь существует -> проверяем пароль
-                    if (userData.password === pass) {
-                        loginSuccess(userData);
-                    } else {
-                        errorEl.style.display = 'block';
-                        errorEl.innerText = "Неверный пароль!";
-                    }
+                    if (userData.password === pass) loginSuccess(userData);
+                    else showError("Неверный пароль!");
                 } else {
-                    // Новый пользователь -> регистрируем
                     const newUser = { id: 'u' + Date.now(), name: name, password: pass };
                     usersDb.child(name).set(newUser);
                     loginSuccess(newUser);
@@ -176,6 +183,12 @@
         function loginSuccess(uData) {
             localStorage.setItem('max_session', JSON.stringify(uData));
             location.reload();
+        }
+
+        function showError(txt) {
+            const err = document.getElementById('error-msg');
+            err.innerText = txt;
+            err.style.display = 'block';
         }
 
         function logout() {
@@ -190,14 +203,15 @@
                 snap.forEach(child => {
                     const m = child.val();
                     const isMy = m.uid === user.id;
-                    let content = `<span class="sender">${m.user}</span>`;
-                    if(m.type === 'text') content += `<div>${m.text}</div>`;
-                    if(m.type === 'img') content += `<img src="${m.url}">`;
-                    if(m.type === 'vid') content += `<video src="${m.url}" controls></video>`;
-
                     const div = document.createElement('div');
                     div.className = `msg ${isMy ? 'my' : 'other'}`;
-                    div.innerHTML = content;
+                    
+                    let html = `<span class="sender">${m.user}</span>`;
+                    if(m.type === 'text') html += `<div>${m.text}</div>`;
+                    else if(m.type === 'img') html += `<img src="${m.url}" onclick="window.open('${m.url}')">`;
+                    else if(m.type === 'vid') html += `<video src="${m.url}" controls></video>`;
+                    
+                    div.innerHTML = html;
                     flow.appendChild(div);
                 });
                 flow.scrollTop = flow.scrollHeight;
@@ -206,8 +220,12 @@
 
         function sendMsg() {
             const inp = document.getElementById('msg-input');
-            if(!inp.value.trim()) return;
-            chatDb.push({ uid: user.id, user: user.name, text: inp.value, type: 'text', time: Date.now() });
+            const val = inp.value.trim();
+            if(!val) return;
+
+            const msgData = { uid: user.id, user: user.name, text: val, type: 'text', time: Date.now() };
+            chatDb.push(msgData);
+            notifyTelegram(user.name, val, 'text');
             inp.value = "";
         }
 
@@ -215,15 +233,19 @@
             const file = el.files[0];
             if(!file) return;
             const progress = document.getElementById('progress');
-            progress.style.width = '10%';
+            progress.style.width = '20%';
+            
             const ref = storage.child(Date.now() + '_' + file.name);
             const task = ref.put(file);
+            
             task.on('state_changed', 
                 s => progress.style.width = (s.bytesTransferred / s.totalBytes * 100) + '%',
-                e => alert('Ошибка'),
+                e => alert('Ошибка загрузки'),
                 () => {
                     task.snapshot.ref.getDownloadURL().then(url => {
-                        chatDb.push({ uid: user.id, user: user.name, url: url, type: file.type.includes('image') ? 'img' : 'vid', time: Date.now() });
+                        const type = file.type.includes('image') ? 'img' : 'vid';
+                        chatDb.push({ uid: user.id, user: user.name, url: url, type: type, time: Date.now() });
+                        notifyTelegram(user.name, "", type);
                         progress.style.width = '0%';
                     });
                 }

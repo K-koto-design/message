@@ -27,32 +27,22 @@
         }
 
         body { 
-            margin: 0; 
-            background: var(--bg); 
-            color: var(--text); 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
+            margin: 0; background: var(--bg); color: var(--text); 
+            height: 100vh; display: flex; flex-direction: column; 
+            overflow: hidden; position: fixed; width: 100%;
         }
 
-        /* Исправленная шапка: опустил ниже для iPhone */
         header {
             padding: calc(env(safe-area-inset-top) + 25px) 16px 12px;
             background: rgba(20, 20, 22, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 0.5px solid #2c2c2e;
-            z-index: 100;
+            border-bottom: 0.5px solid #2c2c2e; z-index: 100;
         }
         
         .avatar-main { 
-            width: 40px; height: 40px; 
-            border-radius: 12px; 
-            background: var(--vk-blue); 
-            display: flex; align-items: center; justify-content: center; 
-            font-weight: 700;
+            width: 40px; height: 40px; border-radius: 12px; 
+            background: var(--vk-blue); display: flex; align-items: center; justify-content: center; font-weight: 700;
         }
 
         .header-center { flex: 1; margin-left: 12px; }
@@ -62,61 +52,37 @@
         .typing-text { color: var(--text-sec); font-size: 11px; font-style: italic; min-height: 13px; }
 
         #chat-flow { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 15px 12px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px;
-            background: var(--bg); /* Убрал фоновый паттерн */
+            flex: 1; overflow-y: auto; padding: 15px 12px; 
+            display: flex; flex-direction: column; gap: 10px; background: var(--bg);
+            -webkit-overflow-scrolling: touch;
         }
         
-        .msg-wrap { display: flex; flex-direction: column; max-width: 85%; }
+        .msg-wrap { display: flex; flex-direction: column; max-width: 85%; position: relative; }
         .msg-wrap.my { align-self: flex-end; }
         .msg-wrap.other { align-self: flex-start; }
 
         .sender { font-size: 11px; font-weight: 600; margin: 0 0 3px 4px; color: var(--text-sec); }
         .my .sender { display: none; }
 
-        .msg { 
-            padding: 10px 15px; 
-            border-radius: 20px; 
-            font-size: 16px; 
-            line-height: 1.4; 
-        }
+        .msg { padding: 10px 15px; border-radius: 20px; font-size: 16px; line-height: 1.4; word-wrap: break-word; }
         .my .msg { background: var(--my-msg); border-bottom-right-radius: 4px; }
         .other .msg { background: var(--other-msg); border-bottom-left-radius: 4px; }
         .msg img { max-width: 100%; border-radius: 12px; display: block; }
 
-        /* Панель ввода */
         .input-area { 
-            background: #141416; 
-            padding: 10px 12px calc(15px + env(safe-area-inset-bottom)); 
-            display: flex; align-items: center; gap: 12px;
-            border-top: 0.5px solid #2c2c2e;
+            background: #141416; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); 
+            display: flex; align-items: center; gap: 12px; border-top: 0.5px solid #2c2c2e;
         }
 
-        .input-wrap { 
-            flex: 1; 
-            background: #262629; 
-            border-radius: 22px; 
-            padding: 10px 16px;
-        }
-        
-        #msg-input {
-            width: 100%; background: transparent; border: none; color: white;
-            font-size: 16px; outline: none;
-        }
+        .input-wrap { flex: 1; background: #262629; border-radius: 22px; padding: 10px 16px; }
+        #msg-input { width: 100%; background: transparent; border: none; color: white; font-size: 16px; outline: none; }
+        .icon-btn { color: var(--vk-blue); display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        .icon-btn { color: var(--vk-blue); display: flex; align-items: center; justify-content: center; }
-
-        /* Реакции */
         .react-menu {
             display: none; position: absolute; top: -45px; background: #2c2c2e;
-            border-radius: 20px; padding: 6px 12px; gap: 10px; border: 0.5px solid #444;
-            z-index: 1000;
+            border-radius: 20px; padding: 6px 12px; gap: 10px; border: 0.5px solid #444; z-index: 1000;
         }
-        .del-btn { color: #ff453a; font-size: 12px; font-weight: 600; padding-left: 8px; border-left: 1px solid #444; }
+        .del-btn { color: #ff453a; font-size: 13px; font-weight: 600; cursor: pointer; }
 
         #auth-screen { 
             position: fixed; inset: 0; background: var(--bg); 
@@ -144,7 +110,7 @@
         </div>
     </div>
 
-    <header>
+    <header id="chat-header">
         <div style="display:flex; align-items:center;">
             <div class="avatar-main" id="my-avatar">?</div>
             <div class="header-center">
@@ -160,7 +126,7 @@
 
     <div id="chat-flow"></div>
 
-    <div class="input-area">
+    <div class="input-area" id="input-toolbar">
         <label class="icon-btn">
             <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
             <input type="file" id="file-input" hidden accept="image/*" onchange="uploadFile(this)">
@@ -174,6 +140,9 @@
     </div>
 
     <script>
+        const TG_TOKEN = "8548215166:AAHhHo_ODrDZl-6Lg5Zi-BpBIpeMzXdOEFE";
+        const TG_CHAT_ID = "-1003486195563";
+
         const firebaseConfig = {
             apiKey: "AIzaSyARNjukxBwGfbODNpYRDowRg5ftB9qtZSU",
             authDomain: "message-65b09.firebaseapp.com",
@@ -194,6 +163,16 @@
 
         let user = JSON.parse(localStorage.getItem('max_session'));
         let typingTimeout;
+
+        // Фикс клавиатуры
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                document.body.style.height = window.visualViewport.height + 'px';
+                window.scrollTo(0, 0);
+                const flow = document.getElementById('chat-flow');
+                flow.scrollTop = flow.scrollHeight;
+            });
+        }
 
         if(user) {
             document.getElementById('auth-screen').style.display = 'none';
@@ -232,7 +211,6 @@
             });
         }
 
-        // Логика "Кто-то печатает"
         function handleTyping() {
             typingDb.child(user.id).set(user.name);
             clearTimeout(typingTimeout);
@@ -282,9 +260,27 @@
             });
         }
 
+        async function notifyTelegram(sender, text, type = 'text') {
+            const msg = type === 'text' ? text : "📷 Отправлено фото";
+            try {
+                await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        chat_id: TG_CHAT_ID, 
+                        text: `💬 *${sender}*:\n${msg}`, 
+                        parse_mode: "Markdown" 
+                    })
+                });
+            } catch (e) { console.error("TG Error:", e); }
+        }
+
         function sendMsg() {
-            const i = document.getElementById('msg-input'); if(!i.value.trim()) return;
-            chatDb.push({ uid: user.id, user: user.name, text: i.value, type: 'text' });
+            const i = document.getElementById('msg-input'); 
+            const val = i.value.trim();
+            if(!val) return;
+            chatDb.push({ uid: user.id, user: user.name, text: val, type: 'text' });
+            notifyTelegram(user.name, val);
             typingDb.child(user.id).remove();
             i.value = "";
         }
@@ -295,6 +291,7 @@
             await ref.put(file);
             const url = await ref.getDownloadURL();
             chatDb.push({ uid: user.id, user: user.name, url: url, type: 'img' });
+            notifyTelegram(user.name, "", "img");
         }
 
         document.getElementById('msg-input').onkeypress = e => { if(e.key === 'Enter') sendMsg(); };

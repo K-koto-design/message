@@ -51,20 +51,20 @@
         .msg { padding: 10px 14px; border-radius: 18px; font-size: 16px; line-height: 1.4; word-wrap: break-word; }
         .my .msg { background: var(--my-msg); border-bottom-right-radius: 4px; }
         .other .msg { background: var(--other-msg); border-bottom-left-radius: 4px; }
-        .msg img { max-width: 100%; border-radius: 12px; display: block; }
+        .msg img { max-width: 100%; border-radius: 12px; display: block; margin-top: 5px; }
 
         #contacts-modal { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; padding: 60px 20px; }
-        .contact-item { padding: 15px; border-bottom: 0.5px solid #333; display: flex; align-items: center; gap: 10px; }
+        .contact-item { padding: 15px; border-bottom: 0.5px solid #333; display: flex; align-items: center; gap: 10px; font-weight: 600; }
 
         .bottom-controls { position: fixed; bottom: 0; left: 0; right: 0; background: #141416; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
-        .input-area { padding: 10px 12px; display: flex; align-items: center; gap: 12px; }
+        .input-area { padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
         .input-wrap { flex: 1; background: #262629; border-radius: 20px; padding: 8px 15px; }
         #msg-input { width: 100%; background: transparent; border: none; color: white; font-size: 16px; outline: none; }
 
-        .react-menu { display: none; position: absolute; top: -50px; background: #2c2c2e; border-radius: 20px; padding: 6px 12px; gap: 12px; border: 0.5px solid #444; z-index: 1100; white-space: nowrap; }
+        .icon-btn { color: var(--vk-blue); cursor: pointer; display: flex; align-items: center; }
+
+        .react-menu { display: none; position: absolute; top: -50px; background: #2c2c2e; border-radius: 20px; padding: 6px 12px; gap: 12px; border: 0.5px solid #444; z-index: 1100; align-items: center; }
         .menu-btn { font-size: 12px; color: white; cursor: pointer; }
-        .block-btn { color: #ff9500; }
-        .del-btn { color: #ff453a; }
 
         #auth-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; align-items: center; justify-content: center; }
         .login-box { width: 80%; text-align: center; }
@@ -85,50 +85,52 @@
 
     <div id="contacts-modal">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h2>Чат</h2>
+            <h2 style="margin:0">Чаты</h2>
             <button onclick="toggleContacts(false)" style="background:none; border:none; color:white; font-size:24px;">✕</button>
         </div>
-        <div class="contact-item" onclick="switchChat('public', 'Общий чат')">📢 Общий чат</div>
+        <div class="contact-item" style="color:var(--vk-blue)" onclick="switchChat('public', 'ЧАТ КОТОБАНК')">📢 ЧАТ КОТОБАНК</div>
         <div id="contacts-list"></div>
-        <div style="margin-top: 30px; opacity: 0.5; font-size: 12px;" onclick="clearBlocks()">Разблокировать всех</div>
     </div>
 
     <header>
         <div style="display:flex; align-items:center;" onclick="toggleContacts(true)">
             <div class="avatar-main" id="chat-avatar">📢</div>
             <div class="header-center">
-                <b id="chat-title">Общий чат</b>
+                <b id="chat-title">ЧАТ КОТОБАНК</b>
                 <span class="online-text" id="online-list">...</span>
             </div>
         </div>
-        <div onclick="logout()" style="color:var(--text-sec); font-size: 14px;">Выйти</div>
+        <div onclick="logout()" style="color:var(--text-sec); font-size: 13px;">Выход</div>
     </header>
 
     <div id="chat-flow"></div>
 
     <div class="bottom-controls" id="bottom-bar">
-        <div id="reply-preview" style="display:none; background:#1c1c1e; padding:8px 16px; border-top:0.5px solid #333; justify-content:space-between;">
-            <div id="reply-info" style="font-size:12px; border-left:2px solid var(--vk-blue); padding-left:8px;"></div>
-            <div onclick="cancelReply()">✕</div>
+        <div id="reply-preview" style="display:none; background:#1c1c1e; padding:8px 16px; border-top:0.5px solid #333; justify-content:space-between; align-items:center;">
+            <div id="reply-info" style="font-size:12px; border-left:2px solid var(--vk-blue); padding-left:8px; overflow:hidden;"></div>
+            <div onclick="cancelReply()" style="padding:5px">✕</div>
         </div>
         <div class="input-area">
-            <label style="color: var(--vk-blue); cursor: pointer;">
-                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+            <label class="icon-btn">
+                <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
                 <input type="file" id="file-input" hidden accept="image/*" onchange="uploadFile(this)">
             </label>
+            <div class="icon-btn" onclick="sendImgByUrl()">
+                <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
             <div class="input-wrap">
                 <input type="text" id="msg-input" placeholder="Сообщение" autocomplete="off">
             </div>
-            <div onclick="sendMsg()" style="color: var(--vk-blue);">
-                <svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            <div onclick="sendMsg()" class="icon-btn">
+                <svg width="26" height="26" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </div>
         </div>
     </div>
 
     <script>
-        // --- НАСТРОЙКИ НОВОГО БОТА ---
-        const TG_TOKEN = "7849346493:AAED-9akdGQ_hy9VBBKmQ7x33A3QKNhJSBc"; 
-        const TG_CHAT_ID = "-1003543377987";
+        const TG_TOKEN = "8548215166:AAHhHo_ODrDZl-6Lg5Zi-BpBIpeMzXdOEFE";
+        const TG_CHANNEL_PUBLIC = "-1003486195563";
+        const TG_CHANNEL_PRIVATE = "-1003486195563";
 
         const firebaseConfig = {
             apiKey: "AIzaSyARNjukxBwGfbODNpYRDowRg5ftB9qtZSU",
@@ -151,11 +153,19 @@
         let replyData = null;
         let blockedUsers = JSON.parse(localStorage.getItem('blocked_list') || '[]');
 
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                document.body.style.height = window.visualViewport.height + 'px';
+                const flow = document.getElementById('chat-flow');
+                flow.scrollTop = flow.scrollHeight;
+            });
+        }
+
         if (user) {
             document.getElementById('auth-screen').style.display = 'none';
             initPresence();
             loadContacts();
-            switchChat('public', 'Общий чат');
+            switchChat('public', 'ЧАТ КОТОБАНК');
         }
 
         async function handleLogin() {
@@ -171,7 +181,7 @@
                 await usersDb.child(key).set(newUser);
                 localStorage.setItem('max_session', JSON.stringify(newUser));
                 location.reload();
-            } else { alert("Пароль!"); }
+            } else { alert("Пароль неверен"); }
         }
 
         function initPresence() {
@@ -191,7 +201,7 @@
                     const u = c.val(); if(u.id === user.id) return;
                     const d = document.createElement('div');
                     d.className = 'contact-item';
-                    d.innerHTML = `<b>${u.name}</b>`;
+                    d.innerHTML = `👤 ${u.name}`;
                     d.onclick = () => { switchChat([user.id, u.id].sort().join('_'), u.name); toggleContacts(false); };
                     list.appendChild(d);
                 });
@@ -201,7 +211,7 @@
         function switchChat(id, title) {
             currentChatId = id;
             document.getElementById('chat-title').innerText = title;
-            document.getElementById('chat-avatar').innerText = title === 'Общий чат' ? '📢' : title[0];
+            document.getElementById('chat-avatar').innerText = title === 'ЧАТ КОТОБАНК' ? '📢' : title[0];
             rdb.ref('messages/' + id).off();
             initChat(id);
         }
@@ -220,10 +230,10 @@
                         <div class="react-menu" id="menu-${k}">
                             <span class="menu-btn" onclick="addReact('${k}','❤️')">❤️</span>
                             <span class="menu-btn" onclick="setReply('${k}','${m.user}','${m.text||'Фото'}')">Ответ</span>
-                            ${!isMy ? `<span class="menu-btn block-btn" onclick="blockUser('${m.uid}')">Блок</span>` : `<span class="menu-btn del-btn" onclick="deleteMsg('${k}')">Удал.</span>`}
+                            ${!isMy ? `<span class="menu-btn" style="color:orange" onclick="blockUser('${m.uid}')">Блок</span>` : `<span class="menu-btn" style="color:red" onclick="deleteMsg('${k}')">Удалить</span>`}
                         </div>
                         <div class="msg" onclick="showMenu('${k}')">
-                            ${m.replyTo ? `<div style="border-left:2px solid #fff;padding-left:5px;font-size:12px;opacity:0.6"><b>${m.replyTo.name}</b><br>${m.replyTo.text}</div>` : ''}
+                            ${m.replyTo ? `<div style="border-left:2px solid #fff;padding-left:5px;font-size:12px;opacity:0.6;margin-bottom:5px"><b>${m.replyTo.name}</b><br>${m.replyTo.text}</div>` : ''}
                             ${m.type === 'text' ? `<div>${m.text}</div>` : `<img src="${m.url}">`}
                         </div>
                     `;
@@ -233,35 +243,35 @@
             });
         }
 
-        function blockUser(id) {
-            if(confirm("Заблокировать этого пользователя? Вы больше не увидите его сообщений.")) {
-                blockedUsers.push(id);
-                localStorage.setItem('blocked_list', JSON.stringify(blockedUsers));
-                location.reload();
-            }
-        }
-
-        function clearBlocks() { if(confirm("Разблокировать всех?")) { localStorage.removeItem('blocked_list'); location.reload(); } }
-
-        function showMenu(k) { document.querySelectorAll('.react-menu').forEach(m => m.style.display = 'none'); document.getElementById('menu-' + k).style.display = 'flex'; }
-        function toggleContacts(s) { document.getElementById('contacts-modal').style.display = s ? 'flex' : 'none'; }
-
-        async function notifyTelegram(sender, text) {
-            if(!TG_TOKEN || TG_TOKEN.includes("ТВОЙ")) return;
+        async function notifyTelegram(sender, text, isPrivate = false) {
+            const targetChannel = isPrivate ? TG_CHANNEL_PRIVATE : TG_CHANNEL_PUBLIC;
+            const prefix = isPrivate ? "📩 [ЛИЧКА]" : "📢 [ОБЩИЙ]";
             fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: TG_CHAT_ID, text: `💬 *${sender}*:\n${text}`, parse_mode: "Markdown" })
+                body: JSON.stringify({ chat_id: targetChannel, text: `${prefix} *${sender}*:\n${text}`, parse_mode: "Markdown" })
             });
         }
 
         function sendMsg() {
             const i = document.getElementById('msg-input'); if(!i.value.trim()) return;
+            const isPrivate = currentChatId !== 'public';
             const data = { uid: user.id, user: user.name, text: i.value, type: 'text' };
             if(replyData) data.replyTo = replyData;
             rdb.ref('messages/' + currentChatId).push(data);
-            notifyTelegram(user.name, i.value);
+            notifyTelegram(user.name, i.value, isPrivate);
             i.value = ""; cancelReply();
+        }
+
+        function sendImgByUrl() {
+            const url = prompt("Вставьте прямую ссылку на фото:");
+            if(!url || !url.startsWith('http')) return;
+            const isPrivate = currentChatId !== 'public';
+            const data = { uid: user.id, user: user.name, url: url, type: 'img' };
+            if(replyData) data.replyTo = replyData;
+            rdb.ref('messages/' + currentChatId).push(data);
+            notifyTelegram(user.name, "📷 Фото по ссылке: " + url, isPrivate);
+            cancelReply();
         }
 
         async function uploadFile(el) {
@@ -269,10 +279,21 @@
             const ref = storage.child(Date.now() + '.jpg');
             await ref.put(file);
             const url = await ref.getDownloadURL();
+            const isPrivate = currentChatId !== 'public';
             rdb.ref('messages/' + currentChatId).push({ uid: user.id, user: user.name, url: url, type: 'img' });
-            notifyTelegram(user.name, "📷 Отправил фото");
+            notifyTelegram(user.name, "📷 Фото из галереи", isPrivate);
         }
 
+        function blockUser(id) {
+            if(confirm("Заблокировать?")) {
+                blockedUsers.push(id);
+                localStorage.setItem('blocked_list', JSON.stringify(blockedUsers));
+                location.reload();
+            }
+        }
+
+        function showMenu(k) { document.querySelectorAll('.react-menu').forEach(m => m.style.display = 'none'); document.getElementById('menu-' + k).style.display = 'flex'; }
+        function toggleContacts(s) { document.getElementById('contacts-modal').style.display = s ? 'flex' : 'none'; }
         function setReply(k,n,t) { 
             replyData = { key:k, name:n, text:t }; 
             document.getElementById('reply-info').innerHTML = `<b>${n}</b><br>${t}`;

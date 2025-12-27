@@ -57,11 +57,11 @@
         .contact-item { padding: 15px; border-bottom: 0.5px solid #333; display: flex; align-items: center; gap: 10px; font-weight: 600; }
 
         .bottom-controls { position: fixed; bottom: 0; left: 0; right: 0; background: #141416; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
-        .input-area { padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+        .input-area { padding: 10px 12px; display: flex; align-items: center; gap: 8px; }
         .input-wrap { flex: 1; background: #262629; border-radius: 20px; padding: 8px 15px; }
         #msg-input { width: 100%; background: transparent; border: none; color: white; font-size: 16px; outline: none; }
 
-        .icon-btn { color: var(--vk-blue); cursor: pointer; display: flex; align-items: center; }
+        .icon-btn { color: var(--vk-blue); cursor: pointer; display: flex; align-items: center; padding: 4px; }
 
         .react-menu { display: none; position: absolute; top: -50px; background: #2c2c2e; border-radius: 20px; padding: 6px 12px; gap: 12px; border: 0.5px solid #444; z-index: 1100; align-items: center; }
         .menu-btn { font-size: 12px; color: white; cursor: pointer; }
@@ -85,10 +85,11 @@
 
     <div id="contacts-modal">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h2 style="margin:0">Чаты</h2>
+            <h2 style="margin:0">Разделы</h2>
             <button onclick="toggleContacts(false)" style="background:none; border:none; color:white; font-size:24px;">✕</button>
         </div>
-        <div class="contact-item" style="color:var(--vk-blue)" onclick="switchChat('public', 'ЧАТ КОТОБАНК')">📢 ЧАТ КОТОБАНК</div>
+        <div class="contact-item" style="color:var(--vk-blue)" onclick="switchChat('messages', 'ЧАТ КОТОБАНК')">📢 ЧАТ КОТОБАНК</div>
+        <div style="padding: 10px; color: var(--text-sec); font-size: 12px;">ЛИЧНЫЕ СООБЩЕНИЯ</div>
         <div id="contacts-list"></div>
     </div>
 
@@ -112,17 +113,17 @@
         </div>
         <div class="input-area">
             <label class="icon-btn">
-                <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
                 <input type="file" id="file-input" hidden accept="image/*" onchange="uploadFile(this)">
             </label>
             <div class="icon-btn" onclick="sendImgByUrl()">
-                <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
             <div class="input-wrap">
                 <input type="text" id="msg-input" placeholder="Сообщение" autocomplete="off">
             </div>
             <div onclick="sendMsg()" class="icon-btn">
-                <svg width="26" height="26" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </div>
         </div>
     </div>
@@ -130,7 +131,7 @@
     <script>
         const TG_TOKEN = "8548215166:AAHhHo_ODrDZl-6Lg5Zi-BpBIpeMzXdOEFE";
         const TG_CHANNEL_PUBLIC = "-1003486195563";
-        const TG_CHANNEL_PRIVATE = "-1003486195563";
+        const TG_CHANNEL_PRIVATE = "-1003486195563"; 
 
         const firebaseConfig = {
             apiKey: "AIzaSyARNjukxBwGfbODNpYRDowRg5ftB9qtZSU",
@@ -149,23 +150,15 @@
         const onlineDb = rdb.ref('online');
 
         let user = JSON.parse(localStorage.getItem('max_session'));
-        let currentChatId = 'public';
+        let currentChatId = 'messages'; // Вернул старый ключ сообщений
         let replyData = null;
         let blockedUsers = JSON.parse(localStorage.getItem('blocked_list') || '[]');
-
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', () => {
-                document.body.style.height = window.visualViewport.height + 'px';
-                const flow = document.getElementById('chat-flow');
-                flow.scrollTop = flow.scrollHeight;
-            });
-        }
 
         if (user) {
             document.getElementById('auth-screen').style.display = 'none';
             initPresence();
             loadContacts();
-            switchChat('public', 'ЧАТ КОТОБАНК');
+            switchChat('messages', 'ЧАТ КОТОБАНК');
         }
 
         async function handleLogin() {
@@ -181,7 +174,7 @@
                 await usersDb.child(key).set(newUser);
                 localStorage.setItem('max_session', JSON.stringify(newUser));
                 location.reload();
-            } else { alert("Пароль неверен"); }
+            } else { alert("Ошибка!"); }
         }
 
         function initPresence() {
@@ -202,7 +195,7 @@
                     const d = document.createElement('div');
                     d.className = 'contact-item';
                     d.innerHTML = `👤 ${u.name}`;
-                    d.onclick = () => { switchChat([user.id, u.id].sort().join('_'), u.name); toggleContacts(false); };
+                    d.onclick = () => { switchChat('private_' + [user.id, u.id].sort().join('_'), u.name); toggleContacts(false); };
                     list.appendChild(d);
                 });
             });
@@ -212,12 +205,17 @@
             currentChatId = id;
             document.getElementById('chat-title').innerText = title;
             document.getElementById('chat-avatar').innerText = title === 'ЧАТ КОТОБАНК' ? '📢' : title[0];
-            rdb.ref('messages/' + id).off();
-            initChat(id);
+            
+            // Отписываемся от всех веток и подписываемся на нужную
+            rdb.ref('messages').off();
+            rdb.ref('private_chats').off();
+            
+            let dbPath = (id === 'messages') ? 'messages' : 'private_chats/' + id;
+            initChat(dbPath);
         }
 
-        function initChat(chatId) {
-            rdb.ref('messages/' + chatId).limitToLast(50).on('value', snap => {
+        function initChat(dbPath) {
+            rdb.ref(dbPath).limitToLast(50).on('value', snap => {
                 const flow = document.getElementById('chat-flow');
                 flow.innerHTML = "";
                 snap.forEach(child => {
@@ -245,7 +243,7 @@
 
         async function notifyTelegram(sender, text, isPrivate = false) {
             const targetChannel = isPrivate ? TG_CHANNEL_PRIVATE : TG_CHANNEL_PUBLIC;
-            const prefix = isPrivate ? "📩 [ЛИЧКА]" : "📢 [ОБЩИЙ]";
+            const prefix = isPrivate ? "📩 [ЛИЧКА]" : "📢 [КОТОБАНК]";
             fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -255,22 +253,28 @@
 
         function sendMsg() {
             const i = document.getElementById('msg-input'); if(!i.value.trim()) return;
-            const isPrivate = currentChatId !== 'public';
+            const isPrivate = currentChatId.startsWith('private_');
+            const dbPath = isPrivate ? 'private_chats/' + currentChatId : 'messages';
+            
             const data = { uid: user.id, user: user.name, text: i.value, type: 'text' };
             if(replyData) data.replyTo = replyData;
-            rdb.ref('messages/' + currentChatId).push(data);
+            
+            rdb.ref(dbPath).push(data);
             notifyTelegram(user.name, i.value, isPrivate);
             i.value = ""; cancelReply();
         }
 
         function sendImgByUrl() {
-            const url = prompt("Вставьте прямую ссылку на фото:");
+            const url = prompt("Ссылка на фото:");
             if(!url || !url.startsWith('http')) return;
-            const isPrivate = currentChatId !== 'public';
+            const isPrivate = currentChatId.startsWith('private_');
+            const dbPath = isPrivate ? 'private_chats/' + currentChatId : 'messages';
+            
             const data = { uid: user.id, user: user.name, url: url, type: 'img' };
             if(replyData) data.replyTo = replyData;
-            rdb.ref('messages/' + currentChatId).push(data);
-            notifyTelegram(user.name, "📷 Фото по ссылке: " + url, isPrivate);
+            
+            rdb.ref(dbPath).push(data);
+            notifyTelegram(user.name, "📷 Фото по ссылке", isPrivate);
             cancelReply();
         }
 
@@ -279,8 +283,10 @@
             const ref = storage.child(Date.now() + '.jpg');
             await ref.put(file);
             const url = await ref.getDownloadURL();
-            const isPrivate = currentChatId !== 'public';
-            rdb.ref('messages/' + currentChatId).push({ uid: user.id, user: user.name, url: url, type: 'img' });
+            const isPrivate = currentChatId.startsWith('private_');
+            const dbPath = isPrivate ? 'private_chats/' + currentChatId : 'messages';
+            
+            rdb.ref(dbPath).push({ uid: user.id, user: user.name, url: url, type: 'img' });
             notifyTelegram(user.name, "📷 Фото из галереи", isPrivate);
         }
 
@@ -301,7 +307,11 @@
             document.body.classList.add('has-reply');
         }
         function cancelReply() { replyData = null; document.getElementById('reply-preview').style.display = 'none'; document.body.classList.remove('has-reply'); }
-        function deleteMsg(k) { if(confirm("Удалить?")) rdb.ref(`messages/${currentChatId}/${k}`).remove(); }
+        function deleteMsg(k) { 
+            const isPrivate = currentChatId.startsWith('private_');
+            const dbPath = isPrivate ? 'private_chats/' + currentChatId : 'messages';
+            if(confirm("Удалить?")) rdb.ref(`${dbPath}/${k}`).remove(); 
+        }
         function logout() { onlineDb.child(user.id).remove(); localStorage.clear(); location.reload(); }
         document.getElementById('msg-input').onkeypress = e => { if(e.key === 'Enter') sendMsg(); };
     </script>

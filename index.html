@@ -51,7 +51,6 @@
         .other .msg { background: var(--other-msg); border-bottom-left-radius: 4px; }
         .msg img { max-width: 100%; border-radius: 12px; display: block; margin-top: 5px; }
 
-        /* Реакции */
         .reaction-row { display: flex; gap: 4px; margin-top: -8px; z-index: 10; }
         .my .reaction-row { justify-content: flex-end; }
         .bubble { background: #262629; border: 1px solid #000; border-radius: 12px; padding: 2px 8px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
@@ -61,7 +60,7 @@
         .menu-btn { font-size: 13px; color: white; cursor: pointer; font-weight: 500; }
 
         #contacts-modal { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; padding: 60px 20px; }
-        .contact-item { padding: 15px; border-bottom: 0.5px solid #333; display: flex; align-items: center; gap: 10px; font-weight: 600; }
+        .contact-item { padding: 15px; border-bottom: 0.5px solid #333; display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
 
         .bottom-controls { position: fixed; bottom: 0; left: 0; right: 0; background: #141416; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
         .input-area { padding: 10px 12px; display: flex; align-items: center; gap: 8px; }
@@ -104,7 +103,7 @@
                 <span class="online-text" id="online-list">...</span>
             </div>
         </div>
-        <div onclick="logout()" style="color:var(--text-sec); font-size: 13px;">Выход</div>
+        <div onclick="logout()" style="color:var(--text-sec); font-size: 13px; cursor:pointer;">Выход</div>
     </header>
 
     <div id="chat-flow"></div>
@@ -112,7 +111,7 @@
     <div class="bottom-controls">
         <div id="reply-preview" style="display:none; background:#1c1c1e; padding:8px 16px; border-top:0.5px solid #333; justify-content:space-between; align-items:center;">
             <div id="reply-info" style="font-size:12px; border-left:2px solid var(--vk-blue); padding-left:8px; overflow:hidden;"></div>
-            <div onclick="cancelReply()" style="padding:5px">✕</div>
+            <div onclick="cancelReply()" style="padding:5px; cursor:pointer;">✕</div>
         </div>
         <div class="input-area">
             <div class="icon-btn" onclick="sendImgByUrl()">
@@ -128,13 +127,10 @@
     </div>
 
     <script>
-        // --- НАСТРОЙКИ ТЕЛЕГРАМ ---
         const TG_PUBLIC_BOT = "8548215166:AAHhHo_ODrDZl-6Lg5Zi-BpBIpeMzXdOEFE";
-        const TG_PUBLIC_CHAT = "-1003486195563"; // Канал для общего чата
-
-        const TG_PRIVATE_BOT = "8548215166:AAHhHo_ODrDZl-6Lg5Zi-BpBIpeMzXdOEFE"; // Можно вставить другой токен
-        const TG_PRIVATE_CHAT = "-1003486195563"; // Канал для лички
-        // --------------------------
+        const TG_PUBLIC_CHAT = "-1003486195563";
+        const TG_PRIVATE_BOT = "7849346493:AAED-9akdGQ_hy9VBBKmQ7x33A3QKNhJSBc"; 
+        const TG_PRIVATE_CHAT = "-1003543377987";
 
         const firebaseConfig = {
             apiKey: "AIzaSyARNjukxBwGfbODNpYRDowRg5ftB9qtZSU",
@@ -174,7 +170,7 @@
                 await usersDb.child(n.toLowerCase()).set(newUser);
                 localStorage.setItem('max_session', JSON.stringify(newUser));
                 location.reload();
-            } else { alert("Ошибка!"); }
+            } else { alert("Ошибка пароля!"); }
         }
 
         function initPresence() {
@@ -195,26 +191,36 @@
                     const d = document.createElement('div');
                     d.className = 'contact-item';
                     d.innerHTML = `👤 ${u.name}`;
-                    d.onclick = () => { switchChat('private_' + [user.id, u.id].sort().join('_'), u.name); toggleContacts(false); };
+                    d.onclick = () => { 
+                        // Генерируем одинаковый ID для обоих собеседников
+                        const chatId = [user.id, u.id].sort().join('_');
+                        switchChat(chatId, u.name); 
+                        toggleContacts(false); 
+                    };
                     list.appendChild(d);
                 });
             });
         }
 
         function switchChat(id, title) {
+            // Очищаем старые слушатели перед переходом
+            if (currentChatId === 'messages') {
+                rdb.ref('messages').off();
+            } else {
+                rdb.ref('private_chats/' + currentChatId).off();
+            }
+
             currentChatId = id;
             document.getElementById('chat-title').innerText = title;
-            document.getElementById('chat-avatar').innerText = title === 'ЧАТ КОТОБАНК' ? '📢' : title[0];
-            const dbPath = (id === 'messages') ? 'messages' : 'private_chats/' + id;
+            document.getElementById('chat-avatar').innerText = (id === 'messages') ? '📢' : title[0];
             
-            rdb.ref('messages').off();
-            rdb.ref('private_chats').off();
+            const dbPath = (id === 'messages') ? 'messages' : 'private_chats/' + id;
             initChatListener(dbPath);
         }
 
         function initChatListener(dbPath) {
+            const flow = document.getElementById('chat-flow');
             rdb.ref(dbPath).limitToLast(50).on('value', snap => {
-                const flow = document.getElementById('chat-flow');
                 flow.innerHTML = "";
                 snap.forEach(child => {
                     const m = child.val();
@@ -255,8 +261,7 @@
 
         function addReact(k, emoji) {
             const dbPath = currentChatId === 'messages' ? `messages/${k}/reactions/${emoji}` : `private_chats/${currentChatId}/${k}/reactions/${emoji}`;
-            const ref = rdb.ref(dbPath);
-            ref.transaction(current => {
+            rdb.ref(dbPath).transaction(current => {
                 if(!current) current = {};
                 if(current[user.id]) delete current[user.id];
                 else current[user.id] = true;
@@ -266,7 +271,7 @@
         }
 
         async function notifyTg(text) {
-            const isPrivate = currentChatId.startsWith('private_');
+            const isPrivate = currentChatId !== 'messages';
             const token = isPrivate ? TG_PRIVATE_BOT : TG_PUBLIC_BOT;
             const chat = isPrivate ? TG_PRIVATE_CHAT : TG_PUBLIC_CHAT;
             const pref = isPrivate ? "📩 [ЛИЧКА]" : "📢 [ОБЩИЙ]";
@@ -279,12 +284,16 @@
         }
 
         function sendMsg() {
-            const i = document.getElementById('msg-input'); if(!i.value.trim()) return;
+            const i = document.getElementById('msg-input'); 
+            const val = i.value.trim();
+            if(!val) return;
+            
             const dbPath = currentChatId === 'messages' ? 'messages' : 'private_chats/' + currentChatId;
-            const data = { uid: user.id, user: user.name, text: i.value, type: 'text' };
+            const data = { uid: user.id, user: user.name, text: val, type: 'text', ts: Date.now() };
             if(replyData) data.replyTo = replyData;
+            
             rdb.ref(dbPath).push(data);
-            notifyTg(i.value);
+            notifyTg(val);
             i.value = ""; cancelReply();
         }
 
@@ -292,7 +301,7 @@
             const url = prompt("Ссылка на фото:");
             if(!url || !url.startsWith('http')) return;
             const dbPath = currentChatId === 'messages' ? 'messages' : 'private_chats/' + currentChatId;
-            rdb.ref(dbPath).push({ uid: user.id, user: user.name, url: url, type: 'img' });
+            rdb.ref(dbPath).push({ uid: user.id, user: user.name, url: url, type: 'img', ts: Date.now() });
             notifyTg("📷 Фото по ссылке");
         }
 
@@ -310,11 +319,14 @@
         }
 
         function toggleContacts(s) { document.getElementById('contacts-modal').style.display = s ? 'flex' : 'none'; }
+        
         function setReply(k,n,t) { 
             replyData = { key:k, name:n, text:t }; 
             document.getElementById('reply-info').innerHTML = `<b>${n}</b><br>${t}`;
             document.getElementById('reply-preview').style.display = 'flex';
+            document.querySelectorAll('.react-menu').forEach(x => x.style.display = 'none');
         }
+
         function cancelReply() { replyData = null; document.getElementById('reply-preview').style.display = 'none'; }
         function logout() { onlineDb.child(user.id).remove(); localStorage.clear(); location.reload(); }
         document.getElementById('msg-input').onkeypress = e => { if(e.key === 'Enter') sendMsg(); };

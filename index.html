@@ -18,71 +18,57 @@
             --text-sec: #8e8e93;
             --my-msg: #0077ff;
             --other-msg: #262629;
+            --header-h: calc(env(safe-area-inset-top) + 65px);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-        body { margin: 0; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: fixed; width: 100%; }
+        html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); height: 100%; width: 100%; overflow: hidden; position: fixed; }
 
         header {
-            padding: calc(env(safe-area-inset-top) + 25px) 16px 12px;
-            background: rgba(20, 20, 22, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid #2c2c2e; z-index: 100;
+            position: fixed; top: 0; left: 0; right: 0; height: var(--header-h);
+            padding: calc(env(safe-area-inset-top) + 20px) 16px 10px;
+            background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid #2c2c2e; z-index: 1000;
         }
         
-        .avatar-main { width: 40px; height: 40px; border-radius: 12px; background: var(--vk-blue); display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .avatar-main { width: 38px; height: 38px; border-radius: 10px; background: var(--vk-blue); display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; }
         .header-center { flex: 1; margin-left: 12px; }
-        .header-center b { display: block; font-size: 17px; letter-spacing: -0.4px; }
-        .online-text { color: var(--vk-blue); font-size: 12px; font-weight: 500; }
-        .typing-text { color: var(--text-sec); font-size: 11px; font-style: italic; min-height: 13px; }
+        .header-center b { display: block; font-size: 16px; }
+        .online-text { color: var(--vk-blue); font-size: 11px; }
 
-        #chat-flow { flex: 1; overflow-y: auto; padding: 15px 12px; display: flex; flex-direction: column; gap: 10px; background: var(--bg); scroll-behavior: smooth; }
+        #chat-flow { 
+            position: absolute; top: var(--header-h); bottom: 70px; left: 0; right: 0;
+            overflow-y: auto; padding: 15px 12px; display: flex; flex-direction: column; gap: 10px;
+            -webkit-overflow-scrolling: touch;
+        }
         
-        .msg-wrap { display: flex; flex-direction: column; max-width: 85%; position: relative; transition: background 0.3s; }
+        body.has-reply #chat-flow { bottom: 125px; }
+
+        .msg-wrap { display: flex; flex-direction: column; max-width: 85%; position: relative; }
         .msg-wrap.my { align-self: flex-end; }
         .msg-wrap.other { align-self: flex-start; }
-
-        .sender { font-size: 11px; font-weight: 600; margin: 0 0 3px 4px; color: var(--text-sec); }
-
-        /* Дизайн цитаты (ответа) внутри сообщения */
-        .reply-box { 
-            background: rgba(255,255,255,0.1); border-left: 3px solid #fff; 
-            padding: 4px 8px; border-radius: 4px; margin-bottom: 5px; font-size: 13px; 
-            color: rgba(255,255,255,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-
-        .msg { padding: 10px 15px; border-radius: 20px; font-size: 16px; line-height: 1.4; word-wrap: break-word; }
+        .sender { font-size: 11px; font-weight: 600; margin: 0 0 2px 4px; color: var(--text-sec); }
+        .msg { padding: 10px 14px; border-radius: 18px; font-size: 16px; line-height: 1.4; word-wrap: break-word; }
         .my .msg { background: var(--my-msg); border-bottom-right-radius: 4px; }
         .other .msg { background: var(--other-msg); border-bottom-left-radius: 4px; }
         .msg img { max-width: 100%; border-radius: 12px; display: block; }
 
-        /* Индикатор того, что мы сейчас отвечаем (над полем ввода) */
-        #reply-preview { 
-            display: none; background: #1c1c1e; padding: 8px 16px; 
-            border-top: 0.5px solid #333; align-items: center; justify-content: space-between;
-        }
+        #contacts-modal { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; padding: 60px 20px; }
+        .contact-item { padding: 15px; border-bottom: 0.5px solid #333; display: flex; align-items: center; gap: 10px; }
 
-        .input-area { background: #141416; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; border-top: 0.5px solid #2c2c2e; }
-        .input-wrap { flex: 1; background: #262629; border-radius: 22px; padding: 10px 16px; }
+        .bottom-controls { position: fixed; bottom: 0; left: 0; right: 0; background: #141416; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
+        .input-area { padding: 10px 12px; display: flex; align-items: center; gap: 12px; }
+        .input-wrap { flex: 1; background: #262629; border-radius: 20px; padding: 8px 15px; }
         #msg-input { width: 100%; background: transparent; border: none; color: white; font-size: 16px; outline: none; }
 
-        /* Меню действий */
-        .react-menu {
-            display: none; position: absolute; top: -50px; background: #2c2c2e;
-            border-radius: 20px; padding: 6px 12px; gap: 12px; border: 0.5px solid #444; z-index: 1000; align-items: center;
-        }
-        .react-item { cursor: pointer; font-size: 18px; }
-        .menu-action { font-size: 12px; font-weight: 600; color: #fff; cursor: pointer; padding: 0 4px; }
-        .del-btn { color: #ff453a; border-left: 1px solid #444; padding-left: 8px; }
+        .react-menu { display: none; position: absolute; top: -50px; background: #2c2c2e; border-radius: 20px; padding: 6px 12px; gap: 12px; border: 0.5px solid #444; z-index: 1100; white-space: nowrap; }
+        .menu-btn { font-size: 12px; color: white; cursor: pointer; }
+        .block-btn { color: #ff9500; }
+        .del-btn { color: #ff453a; }
 
-        /* Плашки реакций под сообщением */
-        .reaction-row { display: flex; gap: 4px; margin-top: -6px; z-index: 10; }
-        .my .reaction-row { justify-content: flex-end; }
-        .bubble { background: #262629; border: 1px solid #000; border-radius: 10px; padding: 2px 6px; font-size: 11px; cursor: pointer; }
-        .bubble.active { border-color: var(--vk-blue); background: #3a3a3c; }
-
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
-        .login-box { width: 80%; max-width: 300px; text-align: center; }
-        .login-box input { width: 100%; padding: 16px; border-radius: 16px; border: none; background: var(--card); color: white; margin-bottom: 12px; text-align: center; }
+        #auth-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .login-box { width: 80%; text-align: center; }
+        .login-box input { width: 100%; padding: 16px; border-radius: 16px; border: none; background: #1c1c1e; color: white; margin-bottom: 12px; text-align: center; }
         .login-box button { width: 100%; padding: 16px; border-radius: 16px; border: none; background: var(--vk-blue); color: white; font-weight: 700; }
     </style>
 </head>
@@ -90,22 +76,29 @@
 
     <div id="auth-screen">
         <div class="login-box">
-            <h1 style="font-size: 36px; margin-bottom: 30px;">КОЛИЧ</h1>
+            <h1>КОЛИЧ</h1>
             <input type="text" id="user-name" placeholder="Имя">
             <input type="password" id="user-pass" placeholder="Пароль">
             <button onclick="handleLogin()">Войти</button>
         </div>
     </div>
 
+    <div id="contacts-modal">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2>Чат</h2>
+            <button onclick="toggleContacts(false)" style="background:none; border:none; color:white; font-size:24px;">✕</button>
+        </div>
+        <div class="contact-item" onclick="switchChat('public', 'Общий чат')">📢 Общий чат</div>
+        <div id="contacts-list"></div>
+        <div style="margin-top: 30px; opacity: 0.5; font-size: 12px;" onclick="clearBlocks()">Разблокировать всех</div>
+    </div>
+
     <header>
-        <div style="display:flex; align-items:center;">
-            <div class="avatar-main" id="my-avatar">?</div>
+        <div style="display:flex; align-items:center;" onclick="toggleContacts(true)">
+            <div class="avatar-main" id="chat-avatar">📢</div>
             <div class="header-center">
-                <b>КОТОБАНК</b>
-                <div class="status-row">
-                    <span class="online-text" id="online-list">...</span>
-                    <span class="typing-text" id="typing-indicator"></span>
-                </div>
+                <b id="chat-title">Общий чат</b>
+                <span class="online-text" id="online-list">...</span>
             </div>
         </div>
         <div onclick="logout()" style="color:var(--text-sec); font-size: 14px;">Выйти</div>
@@ -113,30 +106,29 @@
 
     <div id="chat-flow"></div>
 
-    <div id="reply-preview">
-        <div style="border-left: 2px solid var(--vk-blue); padding-left: 8px;">
-            <div style="font-size: 11px; color: var(--vk-blue);" id="reply-name">Ответ пользователю</div>
-            <div style="font-size: 13px; color: var(--text-sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;" id="reply-text">Текст сообщения</div>
+    <div class="bottom-controls" id="bottom-bar">
+        <div id="reply-preview" style="display:none; background:#1c1c1e; padding:8px 16px; border-top:0.5px solid #333; justify-content:space-between;">
+            <div id="reply-info" style="font-size:12px; border-left:2px solid var(--vk-blue); padding-left:8px;"></div>
+            <div onclick="cancelReply()">✕</div>
         </div>
-        <div onclick="cancelReply()" style="color: var(--text-sec); font-size: 18px; padding: 5px;">✕</div>
-    </div>
-
-    <div class="input-area">
-        <label class="icon-btn" style="color: var(--vk-blue);">
-            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
-            <input type="file" id="file-input" hidden accept="image/*" onchange="uploadFile(this)">
-        </label>
-        <div class="input-wrap">
-            <input type="text" id="msg-input" placeholder="Сообщение" autocomplete="off" oninput="handleTyping()">
-        </div>
-        <div onclick="sendMsg()" style="color: var(--vk-blue); cursor: pointer;">
-            <svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        <div class="input-area">
+            <label style="color: var(--vk-blue); cursor: pointer;">
+                <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+                <input type="file" id="file-input" hidden accept="image/*" onchange="uploadFile(this)">
+            </label>
+            <div class="input-wrap">
+                <input type="text" id="msg-input" placeholder="Сообщение" autocomplete="off">
+            </div>
+            <div onclick="sendMsg()" style="color: var(--vk-blue);">
+                <svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </div>
         </div>
     </div>
 
     <script>
-        const TG_TOKEN = "8548215166:AAHhHo_ODrDZl-6Lg5Zi-BpBIpeMzXdOEFE";
-        const TG_CHAT_ID = "-1003486195563";
+        // --- НАСТРОЙКИ НОВОГО БОТА ---
+        const TG_TOKEN = "7849346493:AAED-9akdGQ_hy9VBBKmQ7x33A3QKNhJSBc"; 
+        const TG_CHAT_ID = "-1003543377987";
 
         const firebaseConfig = {
             apiKey: "AIzaSyARNjukxBwGfbODNpYRDowRg5ftB9qtZSU",
@@ -151,170 +143,123 @@
         firebase.initializeApp(firebaseConfig);
         const rdb = firebase.database();
         const storage = firebase.storage().ref('chat_media');
-        const chatDb = rdb.ref('messages');
         const usersDb = rdb.ref('users');
         const onlineDb = rdb.ref('online');
-        const typingDb = rdb.ref('typing');
 
         let user = JSON.parse(localStorage.getItem('max_session'));
+        let currentChatId = 'public';
         let replyData = null;
-        let typingTimeout;
+        let blockedUsers = JSON.parse(localStorage.getItem('blocked_list') || '[]');
 
-        if(window.visualViewport) {
-            window.visualViewport.addEventListener('resize', () => {
-                document.body.style.height = window.visualViewport.height + 'px';
-                const flow = document.getElementById('chat-flow');
-                flow.scrollTop = flow.scrollHeight;
-            });
-        }
-
-        if(user) {
+        if (user) {
             document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('my-avatar').innerText = user.name[0].toUpperCase();
             initPresence();
-            initChat();
-            initTypingListener();
+            loadContacts();
+            switchChat('public', 'Общий чат');
         }
 
         async function handleLogin() {
             const n = document.getElementById('user-name').value.trim();
             const p = document.getElementById('user-pass').value.trim();
             if(!n || !p) return;
-            const loginKey = n.toLowerCase();
-            const snap = await usersDb.child(loginKey).once('value');
+            const key = n.toLowerCase();
+            const snap = await usersDb.child(key).once('value');
             const data = snap.val();
-            if(data) {
-                if(data.password === p) { localStorage.setItem('max_session', JSON.stringify(data)); location.reload(); }
-                else { alert("Пароль не тот"); }
-            } else {
+            if(data && data.password === p) { localStorage.setItem('max_session', JSON.stringify(data)); location.reload(); }
+            else if(!data) {
                 const newUser = { id: 'u' + Date.now(), name: n, password: p };
-                await usersDb.child(loginKey).set(newUser);
+                await usersDb.child(key).set(newUser);
                 localStorage.setItem('max_session', JSON.stringify(newUser));
                 location.reload();
-            }
+            } else { alert("Пароль!"); }
         }
 
         function initPresence() {
-            const myRef = onlineDb.child(user.id);
-            rdb.ref('.info/connected').on('value', s => { if(s.val()) { myRef.onDisconnect().remove(); myRef.set(user.name); } });
+            onlineDb.child(user.id).set(user.name);
+            onlineDb.child(user.id).onDisconnect().remove();
             onlineDb.on('value', s => {
-                const names = []; s.forEach(c => names.push(c.val()));
-                document.getElementById('online-list').innerText = names.length > 0 ? "В сети: " + names.join(", ") : "Никого нет";
+                let n = []; s.forEach(c => n.push(c.val()));
+                document.getElementById('online-list').innerText = "В сети: " + n.join(", ");
             });
         }
 
-        function handleTyping() {
-            typingDb.child(user.id).set(user.name);
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => typingDb.child(user.id).remove(), 2000);
-        }
-
-        function initTypingListener() {
-            typingDb.on('value', s => {
-                const typers = []; s.forEach(c => { if(c.key !== user.id) typers.push(c.val()); });
-                document.getElementById('typing-indicator').innerText = typers.length ? typers.join(", ") + " печатает..." : "";
+        function loadContacts() {
+            usersDb.on('value', s => {
+                const list = document.getElementById('contacts-list');
+                list.innerHTML = "";
+                s.forEach(c => {
+                    const u = c.val(); if(u.id === user.id) return;
+                    const d = document.createElement('div');
+                    d.className = 'contact-item';
+                    d.innerHTML = `<b>${u.name}</b>`;
+                    d.onclick = () => { switchChat([user.id, u.id].sort().join('_'), u.name); toggleContacts(false); };
+                    list.appendChild(d);
+                });
             });
         }
 
-        function logout() { onlineDb.child(user.id).remove(); localStorage.clear(); location.reload(); }
-
-        // --- ЛОГИКА МЕНЮ, ОТВЕТОВ И РЕАКЦИЙ ---
-
-        function showMenu(k) {
-            document.querySelectorAll('.react-menu').forEach(m => m.style.display = 'none');
-            const menu = document.getElementById('menu-' + k);
-            menu.style.display = 'flex';
+        function switchChat(id, title) {
+            currentChatId = id;
+            document.getElementById('chat-title').innerText = title;
+            document.getElementById('chat-avatar').innerText = title === 'Общий чат' ? '📢' : title[0];
+            rdb.ref('messages/' + id).off();
+            initChat(id);
         }
 
-        function setReply(k, name, text) {
-            replyData = { key: k, name: name, text: text };
-            document.getElementById('reply-name').innerText = name;
-            document.getElementById('reply-text').innerText = text;
-            document.getElementById('reply-preview').style.display = 'flex';
-            document.getElementById('msg-input').focus();
-            document.querySelectorAll('.react-menu').forEach(m => m.style.display = 'none');
-        }
-
-        function cancelReply() {
-            replyData = null;
-            document.getElementById('reply-preview').style.display = 'none';
-        }
-
-        function addReact(k, emoji) {
-            const ref = chatDb.child(k + '/reactions');
-            ref.once('value', s => {
-                let r = s.val() || {};
-                for(let e in r) { if(r[e][user.id]) delete r[e][user.id]; if(!Object.keys(r[e]).length) delete r[e]; }
-                if(!s.child(emoji).child(user.id).exists()) { if(!r[emoji]) r[emoji] = {}; r[emoji][user.id] = true; }
-                ref.set(r);
-            });
-            document.getElementById('menu-' + k).style.display = 'none';
-        }
-
-        function deleteMsg(k) { if(confirm("Удалить?")) chatDb.child(k).remove(); }
-
-        function scrollToMsg(k) {
-            const el = document.getElementById('msg-' + k);
-            if(el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                el.style.background = '#333';
-                setTimeout(() => el.style.background = '', 1000);
-            }
-        }
-
-        function initChat() {
-            chatDb.limitToLast(60).on('value', snap => {
+        function initChat(chatId) {
+            rdb.ref('messages/' + chatId).limitToLast(50).on('value', snap => {
                 const flow = document.getElementById('chat-flow');
                 flow.innerHTML = "";
                 snap.forEach(child => {
-                    const m = child.val(); const k = child.key; const isMy = m.uid === user.id;
+                    const m = child.val(); if(blockedUsers.includes(m.uid)) return;
+                    const k = child.key; const isMy = m.uid === user.id;
                     const wrap = document.createElement('div');
                     wrap.className = `msg-wrap ${isMy ? 'my' : 'other'}`;
-                    wrap.id = 'msg-' + k;
-                    
-                    let html = `
+                    wrap.innerHTML = `
                         ${!isMy ? `<span class="sender">${m.user}</span>` : ''}
                         <div class="react-menu" id="menu-${k}">
-                            <span class="react-item" onclick="addReact('${k}','❤️')">❤️</span>
-                            <span class="react-item" onclick="addReact('${k}','👍')">👍</span>
-                            <span class="menu-action" onclick="setReply('${k}','${m.user}','${m.text||'Фото'}')">Ответить</span>
-                            ${isMy ? `<span class="menu-action del-btn" onclick="deleteMsg('${k}')">Удалить</span>` : ''}
+                            <span class="menu-btn" onclick="addReact('${k}','❤️')">❤️</span>
+                            <span class="menu-btn" onclick="setReply('${k}','${m.user}','${m.text||'Фото'}')">Ответ</span>
+                            ${!isMy ? `<span class="menu-btn block-btn" onclick="blockUser('${m.uid}')">Блок</span>` : `<span class="menu-btn del-btn" onclick="deleteMsg('${k}')">Удал.</span>`}
                         </div>
                         <div class="msg" onclick="showMenu('${k}')">
-                            ${m.replyTo ? `<div class="reply-box" onclick="event.stopPropagation(); scrollToMsg('${m.replyTo.key}')"><b>${m.replyTo.name}</b><br>${m.replyTo.text}</div>` : ''}
+                            ${m.replyTo ? `<div style="border-left:2px solid #fff;padding-left:5px;font-size:12px;opacity:0.6"><b>${m.replyTo.name}</b><br>${m.replyTo.text}</div>` : ''}
                             ${m.type === 'text' ? `<div>${m.text}</div>` : `<img src="${m.url}">`}
                         </div>
                     `;
-
-                    if(m.reactions) {
-                        html += `<div class="reaction-row">`;
-                        for(let e in m.reactions) {
-                            const count = Object.keys(m.reactions[e]).length;
-                            const act = m.reactions[e][user.id] ? 'active' : '';
-                            html += `<div class="bubble ${act}" onclick="event.stopPropagation(); addReact('${k}','${e}')">${e} ${count}</div>`;
-                        }
-                        html += `</div>`;
-                    }
-                    wrap.innerHTML = html; flow.appendChild(wrap);
+                    flow.appendChild(wrap);
                 });
                 flow.scrollTop = flow.scrollHeight;
             });
         }
 
-        async function notifyTelegram(sender, text, type = 'text') {
-            const msg = type === 'text' ? text : "📷 Фото";
+        function blockUser(id) {
+            if(confirm("Заблокировать этого пользователя? Вы больше не увидите его сообщений.")) {
+                blockedUsers.push(id);
+                localStorage.setItem('blocked_list', JSON.stringify(blockedUsers));
+                location.reload();
+            }
+        }
+
+        function clearBlocks() { if(confirm("Разблокировать всех?")) { localStorage.removeItem('blocked_list'); location.reload(); } }
+
+        function showMenu(k) { document.querySelectorAll('.react-menu').forEach(m => m.style.display = 'none'); document.getElementById('menu-' + k).style.display = 'flex'; }
+        function toggleContacts(s) { document.getElementById('contacts-modal').style.display = s ? 'flex' : 'none'; }
+
+        async function notifyTelegram(sender, text) {
+            if(!TG_TOKEN || TG_TOKEN.includes("ТВОЙ")) return;
             fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: TG_CHAT_ID, text: `💬 *${sender}*:\n${msg}`, parse_mode: "Markdown" })
+                body: JSON.stringify({ chat_id: TG_CHAT_ID, text: `💬 *${sender}*:\n${text}`, parse_mode: "Markdown" })
             });
         }
 
         function sendMsg() {
             const i = document.getElementById('msg-input'); if(!i.value.trim()) return;
-            const data = { uid: user.id, user: user.name, text: i.value, type: 'text', ts: Date.now() };
+            const data = { uid: user.id, user: user.name, text: i.value, type: 'text' };
             if(replyData) data.replyTo = replyData;
-            chatDb.push(data);
+            rdb.ref('messages/' + currentChatId).push(data);
             notifyTelegram(user.name, i.value);
             i.value = ""; cancelReply();
         }
@@ -324,13 +269,19 @@
             const ref = storage.child(Date.now() + '.jpg');
             await ref.put(file);
             const url = await ref.getDownloadURL();
-            const data = { uid: user.id, user: user.name, url: url, type: 'img', ts: Date.now() };
-            if(replyData) data.replyTo = replyData;
-            chatDb.push(data);
-            notifyTelegram(user.name, "", "img");
-            cancelReply();
+            rdb.ref('messages/' + currentChatId).push({ uid: user.id, user: user.name, url: url, type: 'img' });
+            notifyTelegram(user.name, "📷 Отправил фото");
         }
 
+        function setReply(k,n,t) { 
+            replyData = { key:k, name:n, text:t }; 
+            document.getElementById('reply-info').innerHTML = `<b>${n}</b><br>${t}`;
+            document.getElementById('reply-preview').style.display = 'flex';
+            document.body.classList.add('has-reply');
+        }
+        function cancelReply() { replyData = null; document.getElementById('reply-preview').style.display = 'none'; document.body.classList.remove('has-reply'); }
+        function deleteMsg(k) { if(confirm("Удалить?")) rdb.ref(`messages/${currentChatId}/${k}`).remove(); }
+        function logout() { onlineDb.child(user.id).remove(); localStorage.clear(); location.reload(); }
         document.getElementById('msg-input').onkeypress = e => { if(e.key === 'Enter') sendMsg(); };
     </script>
 </body>

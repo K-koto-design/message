@@ -52,7 +52,7 @@
         .msg { padding: 10px 15px; border-radius: 20px; font-size: 16px; line-height: 1.4; word-wrap: break-word; }
         .my .msg { background: var(--my-msg); border-bottom-right-radius: 4px; }
         .other .msg { background: var(--other-msg); border-bottom-left-radius: 4px; }
-        .msg img { max-width: 100%; border-radius: 12px; display: block; }
+        .msg img, .msg video { max-width: 100%; border-radius: 12px; display: block; margin: 4px 0; }
 
         #reply-preview { 
             display: none; background: #1c1c1e; padding: 8px 16px; 
@@ -104,7 +104,7 @@
                 </div>
             </div>
         </div>
-        <div onclick="logout()" style="color:var(--text-sec); font-size: 14px;">Выйти</div>
+        <div onclick="logout()" style="color:var(--text-sec); font-size: 14px; cursor:pointer">Выйти</div>
     </header>
 
     <div id="chat-flow"></div>
@@ -114,11 +114,11 @@
             <div style="font-size: 11px; color: var(--vk-blue);" id="reply-name">Ответ пользователю</div>
             <div style="font-size: 13px; color: var(--text-sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;" id="reply-text">Текст сообщения</div>
         </div>
-        <div onclick="cancelReply()" style="color: var(--text-sec); font-size: 18px; padding: 5px;">✕</div>
+        <div onclick="cancelReply()" style="color: var(--text-sec); font-size: 18px; padding: 5px; cursor:pointer">✕</div>
     </div>
 
     <div class="input-area">
-        <div onclick="promptImageUrl()" style="color: var(--vk-blue); cursor: pointer;">
+        <div onclick="promptMediaUrl()" style="color: var(--vk-blue); cursor: pointer;">
             <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
         </div>
         <div class="input-wrap">
@@ -249,8 +249,9 @@
             const el = document.getElementById('msg-' + k);
             if(el) {
                 el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                el.style.background = '#333';
-                setTimeout(() => el.style.background = '', 1000);
+                const bubble = el.querySelector('.msg');
+                bubble.style.filter = 'brightness(1.5)';
+                setTimeout(() => bubble.style.filter = '', 1000);
             }
         }
 
@@ -264,17 +265,21 @@
                     wrap.className = `msg-wrap ${isMy ? 'my' : 'other'}`;
                     wrap.id = 'msg-' + k;
                     
+                    let mediaHtml = '';
+                    if(m.type === 'img') mediaHtml = `<img src="${m.url}" loading="lazy">`;
+                    if(m.type === 'video') mediaHtml = `<video src="${m.url}" controls playsinline preload="metadata"></video>`;
+
                     let html = `
                         ${!isMy ? `<span class="sender">${m.user}</span>` : ''}
                         <div class="react-menu" id="menu-${k}">
                             <span class="react-item" onclick="addReact('${k}','❤️')">❤️</span>
                             <span class="react-item" onclick="addReact('${k}','👍')">👍</span>
-                            <span class="menu-action" onclick="setReply('${k}','${m.user}','${m.text||'Фото'}')">Ответить</span>
+                            <span class="menu-action" onclick="setReply('${k}','${m.user}','${m.text||'Медиа'}')">Ответить</span>
                             ${isMy ? `<span class="menu-action del-btn" onclick="deleteMsg('${k}')">Удалить</span>` : ''}
                         </div>
                         <div class="msg" onclick="showMenu('${k}')">
                             ${m.replyTo ? `<div class="reply-box" onclick="event.stopPropagation(); scrollToMsg('${m.replyTo.key}')"><b>${m.replyTo.name}</b><br>${m.replyTo.text}</div>` : ''}
-                            ${m.type === 'text' ? `<div>${m.text}</div>` : `<img src="${m.url}">`}
+                            ${m.type === 'text' ? `<div>${m.text}</div>` : mediaHtml}
                         </div>
                     `;
 
@@ -294,7 +299,10 @@
         }
 
         async function notifyTelegram(sender, text, type = 'text') {
-            const msg = type === 'text' ? text : "📷 Фото";
+            let msg = text;
+            if(type === 'img') msg = "Фото";
+            if(type === 'video') msg = "Видео";
+            
             fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -311,23 +319,27 @@
             i.value = ""; cancelReply();
         }
 
-        function promptImageUrl() {
-            const url = prompt("Вставьте прямую ссылку на фото:");
-            if(url && url.trim().startsWith('http')) {
-                const data = { 
-                    uid: user.id, 
-                    user: user.name, 
-                    url: url.trim(), 
-                    type: 'img', 
-                    ts: Date.now() 
-                };
-                if(replyData) data.replyTo = replyData;
-                chatDb.push(data);
-                notifyTelegram(user.name, url.trim(), "img");
-                cancelReply();
-            } else if (url) {
-                alert("Некорректная ссылка!");
-            }
+        function promptMediaUrl() {
+            const url = prompt("Вставьте ссылку на Фото или Видео (mp4):");
+            if(!url || !url.trim().startsWith('http')) return;
+            
+            const cleanUrl = url.trim();
+            // Простая проверка расширения для определения типа
+            const isVideo = cleanUrl.toLowerCase().match(/\.(mp4|webm|mov|ogg)$/);
+            const type = isVideo ? 'video' : 'img';
+
+            const data = { 
+                uid: user.id, 
+                user: user.name, 
+                url: cleanUrl, 
+                type: type, 
+                ts: Date.now() 
+            };
+            
+            if(replyData) data.replyTo = replyData;
+            chatDb.push(data);
+            notifyTelegram(user.name, cleanUrl, type);
+            cancelReply();
         }
 
         document.getElementById('msg-input').onkeypress = e => { if(e.key === 'Enter') sendMsg(); };

@@ -39,64 +39,58 @@
         .profile-info { display: flex; align-items: center; gap: 10px; }
         .avatar-main { width: 36px; height: 36px; border-radius: 12px; background: var(--vk-blue); display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
-        #chat-flow { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: var(--bg); }
-        .msg { max-width: 80%; padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; position: relative; animation: slideUp 0.2s ease; }
-        @keyframes slideUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+        #chat-flow { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
         
-        .msg.my { align-self: flex-end; background: var(--my-msg); border-bottom-right-radius: 4px; }
-        .msg.other { align-self: flex-start; background: var(--other-msg); border-bottom-left-radius: 4px; }
-        .sender { font-size: 11px; font-weight: 600; margin-bottom: 2px; opacity: 0.7; display: block; }
-        .msg img, .msg video { max-width: 100%; border-radius: 12px; margin-top: 5px; display: block; }
+        .msg-wrap { display: flex; flex-direction: column; position: relative; max-width: 80%; }
+        .msg-wrap.my { align-self: flex-end; }
+        .msg-wrap.other { align-self: flex-start; }
 
-        /* РЕАКЦИИ */
-        .reactions-wrap {
-            display: flex; gap: 4px; margin-top: 6px;
+        .msg { 
+            padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; 
+            position: relative; cursor: pointer;
         }
-        .react-btn {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px; padding: 2px 6px; font-size: 12px;
-            cursor: pointer; display: flex; align-items: center; gap: 3px;
-            transition: 0.2s;
+        .my .msg { background: var(--my-msg); border-bottom-right-radius: 4px; }
+        .other .msg { background: var(--other-msg); border-bottom-left-radius: 4px; }
+        
+        .sender { font-size: 11px; font-weight: 600; margin-bottom: 2px; opacity: 0.7; display: block; }
+        .msg img { max-width: 100%; border-radius: 12px; margin-top: 5px; display: block; }
+
+        /* ВСПЛЫВАЮЩИЕ РЕАКЦИИ */
+        .react-menu {
+            display: none; position: absolute; top: -45px; background: var(--card);
+            border-radius: 20px; padding: 6px 12px; gap: 10px; border: 1px solid #444;
+            z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.5); animation: pop 0.2s ease;
         }
-        .react-btn:active { transform: scale(1.2); }
-        .react-count { font-weight: bold; font-size: 11px; }
+        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .react-item { cursor: pointer; font-size: 20px; }
+
+        /* ПУЗЫРЬКИ РЕАКЦИЙ */
+        .react-row { display: flex; gap: 4px; margin-top: -6px; z-index: 5; }
+        .my .react-row { justify-content: flex-end; margin-right: 5px; }
+        .other .react-row { justify-content: flex-start; margin-left: 5px; }
+
+        .bubble {
+            background: #2c2c2e; border: 1px solid var(--bg); border-radius: 10px;
+            padding: 2px 7px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 3px;
+        }
 
         .input-area { background: var(--card); padding: 10px 15px calc(15px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; }
         .input-wrap { flex: 1; background: #2c2c2e; border-radius: 20px; padding: 8px 15px; display: flex; align-items: center; }
-        input[type="text"], input[type="password"] { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 16px; }
+        input[type="text"] { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 16px; }
 
-        #auth-screen {
-            position: fixed; inset: 0; background: var(--bg); z-index: 1000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
-        }
-        .login-box { width: 100%; max-width: 320px; text-align: center; }
-        .login-box h1 { font-size: 32px; margin-bottom: 10px; }
-        .login-box input {
-            width: 100%; padding: 16px; border-radius: 16px; border: none;
-            background: var(--card); color: white; margin-bottom: 12px; font-size: 16px; text-align: center;
-        }
-        .login-box button {
-            width: 100%; padding: 16px; border-radius: 16px; border: none;
-            background: var(--vk-blue); color: white; font-weight: bold; font-size: 16px; cursor: pointer;
-        }
-
-        #progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--vk-blue); width: 0%; z-index: 2000; transition: 0.3s; }
-        .action-btn { color: var(--vk-blue); cursor: pointer; display: flex; align-items: center; }
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .login-box { width: 100%; max-width: 320px; text-align: center; padding: 20px; }
+        .login-box input { width: 100%; padding: 16px; border-radius: 16px; border: none; background: var(--card); color: white; margin-bottom: 12px; text-align: center; }
+        .login-box button { width: 100%; padding: 16px; border-radius: 16px; border: none; background: var(--vk-blue); color: white; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="progress"></div>
-
     <div id="auth-screen">
         <div class="login-box">
-            <div style="font-size: 50px; margin-bottom: 20px;">⚡️</div>
             <h1>КОЛИЧ</h1>
-            <p style="color: var(--text-sec); margin-bottom: 30px;">Чат сотрудников</p>
             <input type="text" id="user-name" placeholder="Логин">
-            <input type="password" id="user-pass" placeholder="Пароль" maxlength="8">
-            <button onclick="handleLogin()">Войти в систему</button>
-            <p id="error-msg" style="color: #ff3b30; font-size: 13px; margin-top: 15px; display: none;"></p>
+            <button onclick="handleLogin()">Войти</button>
         </div>
     </div>
 
@@ -104,49 +98,39 @@
         <div class="profile-info">
             <div class="avatar-main" id="my-avatar">?</div>
             <div>
-                <b id="display-name">ЧАТ КОТОБАНК</b><br>
-                <small id="online-counter" style="color: var(--text-sec);">В сети: ...</small>
+                <b>ЧАТ КОТОБАНК</b><br>
+                <small id="online-count" style="color: var(--vk-blue);">В сети: ...</small>
             </div>
         </div>
-        <div class="action-btn" onclick="logout()">
-            <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
-        </div>
+        <div class="action-btn" onclick="logout()" style="color:var(--text-sec); cursor:pointer;">Выход</div>
     </header>
 
     <div id="chat-flow"></div>
 
     <div class="input-area">
-        <label class="action-btn">
+        <label style="color: var(--vk-blue); cursor: pointer;">
             <svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            <input type="file" id="file-input" hidden accept="image/*,video/*" onchange="uploadFile(this)">
+            <input type="file" id="file-input" hidden accept="image/*" onchange="uploadFile(this)">
         </label>
-        
         <div class="input-wrap">
             <input type="text" id="msg-input" placeholder="Сообщение...">
         </div>
-
-        <div class="action-btn" onclick="sendMsg()">
+        <div onclick="sendMsg()" style="color: var(--vk-blue); cursor: pointer;">
             <svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
         </div>
     </div>
 
     <script>
-        // --- КОНФИГУРАЦИЯ ---
-        const TG_TOKEN = "8548215166:AAHhHo_ODrDZl-6Lg5Zi-BpBIpeMzXdOEFE";
-        const TG_CHAT_ID = "-1003486195563";
-        
         const firebaseConfig = {
             apiKey: "AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg",
             databaseURL: "https://webapp-b7149-default-rtdb.europe-west1.firebasedatabase.app",
-            storageBucket: "webapp-b7149.appspot.com",
             projectId: "webapp-b7149",
+            storageBucket: "webapp-b7149.appspot.com"
         };
-
         firebase.initializeApp(firebaseConfig);
         const rdb = firebase.database();
         const chatDb = rdb.ref('max_global_chat');
-        const usersDb = rdb.ref('registered_users');
-        const onlineDb = rdb.ref('online_users'); // Путь для счетчика онлайна
+        const onlineDb = rdb.ref('online_users');
         const storage = firebase.storage().ref('chat_media');
 
         let user = JSON.parse(localStorage.getItem('max_session'));
@@ -154,82 +138,46 @@
         if(user) {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('my-avatar').innerText = user.name[0].toUpperCase();
-            initPresence(); // Запуск отслеживания онлайна
+            initPresence();
             initChat();
         }
 
-        // --- ОНЛАЙН СИСТЕМА ---
         function initPresence() {
             const myStatusRef = onlineDb.child(user.id);
-            
-            // Специальный механизм Firebase для определения дисконнекта
             rdb.ref('.info/connected').on('value', snap => {
                 if (snap.val() === false) return;
-                
-                myStatusRef.onDisconnect().remove(); // Удалить из онлайна при закрытии вкладки
-                myStatusRef.set({ name: user.name, last_seen: Date.now() });
+                myStatusRef.onDisconnect().remove();
+                myStatusRef.set(true);
             });
-
-            // Слушатель общего счетчика
             onlineDb.on('value', snap => {
-                const count = snap.numChildren();
-                document.getElementById('online-counter').innerText = `В сети: ${count}`;
+                document.getElementById('online-count').innerText = `В сети: ${snap.numChildren()}`;
             });
         }
 
-        // --- РЕАКЦИИ ---
-        function addReaction(msgKey, emoji) {
-            const reactionRef = chatDb.child(`${msgKey}/reactions/${emoji}`);
-            reactionRef.transaction(currentCount => (currentCount || 0) + 1);
-        }
-
-        // --- УВЕДОМЛЕНИЯ В TELEGRAM ---
-        async function notifyTelegram(sender, text, type = 'text') {
-            const content = type === 'text' ? text : `📷 Отправил медиафайл`;
-            const message = `💬 *${sender}* в КОЛИЧ:\n${content}`;
-            try {
-                await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: TG_CHAT_ID, text: message, parse_mode: "Markdown" })
-                });
-            } catch (e) { console.error("TG Notify Error", e); }
-        }
-
-        // --- ЛОГИКА ЧАТА ---
-        async function handleLogin() {
+        function handleLogin() {
             const name = document.getElementById('user-name').value.trim();
-            const pass = document.getElementById('user-pass').value.trim();
-            if(!name || !pass) return;
-
-            usersDb.child(name).once('value', snapshot => {
-                const userData = snapshot.val();
-                if (userData) {
-                    if (userData.password === pass) loginSuccess(userData);
-                    else showError("Неверный пароль!");
-                } else {
-                    const newUser = { id: 'u' + Date.now(), name: name, password: pass };
-                    usersDb.child(name).set(newUser);
-                    loginSuccess(newUser);
-                }
-            });
-        }
-
-        function loginSuccess(uData) {
+            if(!name) return;
+            const uData = { id: 'u' + Date.now(), name: name };
             localStorage.setItem('max_session', JSON.stringify(uData));
             location.reload();
         }
 
-        function showError(txt) {
-            const err = document.getElementById('error-msg');
-            err.innerText = txt;
-            err.style.display = 'block';
-        }
-
         function logout() {
-            if(user) onlineDb.child(user.id).remove(); // Удаляем из онлайна при ручном выходе
+            if(user) onlineDb.child(user.id).remove();
             localStorage.removeItem('max_session');
             location.reload();
+        }
+
+        function toggleReact(key) {
+            const el = document.getElementById('menu-' + key);
+            const open = el.style.display === 'flex';
+            document.querySelectorAll('.react-menu').forEach(m => m.style.display = 'none');
+            if(!open) el.style.display = 'flex';
+        }
+
+        function addReaction(key, emoji) {
+            rdb.ref(`max_global_chat/${key}/reactions/${emoji}`).transaction(c => (c || 0) + 1);
+            document.getElementById('menu-' + key).style.display = 'none';
         }
 
         function initChat() {
@@ -238,33 +186,32 @@
                 flow.innerHTML = "";
                 snap.forEach(child => {
                     const m = child.val();
-                    const mKey = child.key;
+                    const k = child.key;
                     const isMy = m.uid === user.id;
-                    const div = document.createElement('div');
-                    div.className = `msg ${isMy ? 'my' : 'other'}`;
-                    
-                    let html = `<span class="sender">${m.user}</span>`;
-                    if(m.type === 'text') html += `<div>${m.text}</div>`;
-                    else if(m.type === 'img') html += `<img src="${m.url}" onclick="window.open('${m.url}')">`;
-                    else if(m.type === 'vid') html += `<video src="${m.url}" controls></video>`;
-                    
-                    // Блок реакций
-                    const heartCount = (m.reactions && m.reactions['❤️']) || 0;
-                    const likeCount = (m.reactions && m.reactions['👍']) || 0;
 
-                    html += `
-                        <div class="reactions-wrap">
-                            <div class="react-btn" onclick="addReaction('${mKey}', '❤️')">
-                                ❤️ <span class="react-count">${heartCount || ''}</span>
-                            </div>
-                            <div class="react-btn" onclick="addReaction('${mKey}', '👍')">
-                                👍 <span class="react-count">${likeCount || ''}</span>
-                            </div>
+                    const wrap = document.createElement('div');
+                    wrap.className = `msg-wrap ${isMy ? 'my' : 'other'}`;
+
+                    let html = `
+                        <div class="react-menu" id="menu-${k}">
+                            <span class="react-item" onclick="addReaction('${k}','❤️')">❤️</span>
+                            <span class="react-item" onclick="addReaction('${k}','👍')">👍</span>
+                        </div>
+                        <div class="msg" onclick="toggleReact('${k}')">
+                            <span class="sender">${m.user}</span>
+                            ${m.type === 'text' ? `<div>${m.text}</div>` : `<img src="${m.url}">`}
                         </div>
                     `;
-                    
-                    div.innerHTML = html;
-                    flow.appendChild(div);
+
+                    if(m.reactions) {
+                        html += `<div class="react-row">`;
+                        for(let emoji in m.reactions) {
+                            html += `<div class="bubble" onclick="addReaction('${k}','${emoji}')">${emoji} ${m.reactions[emoji]}</div>`;
+                        }
+                        html += `</div>`;
+                    }
+                    wrap.innerHTML = html;
+                    flow.appendChild(wrap);
                 });
                 flow.scrollTop = flow.scrollHeight;
             });
@@ -272,36 +219,18 @@
 
         function sendMsg() {
             const inp = document.getElementById('msg-input');
-            const val = inp.value.trim();
-            if(!val) return;
-
-            const msgData = { uid: user.id, user: user.name, text: val, type: 'text', time: Date.now() };
-            chatDb.push(msgData);
-            notifyTelegram(user.name, val, 'text');
+            if(!inp.value.trim()) return;
+            chatDb.push({ uid: user.id, user: user.name, text: inp.value, type: 'text', time: Date.now() });
             inp.value = "";
         }
 
         async function uploadFile(el) {
             const file = el.files[0];
             if(!file) return;
-            const progress = document.getElementById('progress');
-            progress.style.width = '20%';
-            
             const ref = storage.child(Date.now() + '_' + file.name);
-            const task = ref.put(file);
-            
-            task.on('state_changed', 
-                s => progress.style.width = (s.bytesTransferred / s.totalBytes * 100) + '%',
-                e => alert('Ошибка загрузки'),
-                () => {
-                    task.snapshot.ref.getDownloadURL().then(url => {
-                        const type = file.type.includes('image') ? 'img' : 'vid';
-                        chatDb.push({ uid: user.id, user: user.name, url: url, type: type, time: Date.now() });
-                        notifyTelegram(user.name, "", type);
-                        progress.style.width = '0%';
-                    });
-                }
-            );
+            await ref.put(file);
+            const url = await ref.getDownloadURL();
+            chatDb.push({ uid: user.id, user: user.name, url: url, type: 'img', time: Date.now() });
         }
 
         document.getElementById('msg-input').onkeypress = e => { if(e.key === 'Enter') sendMsg(); };
